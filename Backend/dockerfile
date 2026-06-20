@@ -1,0 +1,28 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies for reconnaissance tools
+RUN apt-get update && apt-get install -y \
+    whois \
+    dnsutils \
+    curl \
+    nmap \
+    openssl \
+    python3-pip \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install sherlock via pip
+RUN pip install --no-cache-dir sherlock-project
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app.py .
+
+RUN mkdir -p /app/recon_results
+
+EXPOSE 5000
+
+CMD ["python", "app.py"]
