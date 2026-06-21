@@ -36,7 +36,7 @@ services:
     ports:
       - "3000:80"
     environment:
-      - REACT_APP_API_BASE=http://localhost:5000/api
+      - REACT_APP_API_BASE=/api
     networks:
       - recon-network
     restart: unless-stopped
