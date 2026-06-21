@@ -124,8 +124,8 @@ export default function ReconApp() {
     <div className="recon-app">
       <header className="app-header">
         <div className="header-content">
-          <h1>Recon-as-a-Service</h1>
-          <p>Professional reconnaissance scanning in your browser</p>
+          <h1>RECON_SET </h1>
+          <p> reconnaissance scanning in your browser</p>
         </div>
       </header>
 
@@ -144,7 +144,7 @@ export default function ReconApp() {
                 onChange={handleTargetTypeChange}
                 className="form-control"
               >
-                <option value="Domain/IP">Domain or IP Address</option>
+                <option value="Domain/IP">Domain/IP Address</option>
                 <option value="Username">Username</option>
               </select>
             </div>
@@ -257,7 +257,7 @@ export default function ReconApp() {
       </main>
 
       <footer className="app-footer">
-        <p>Recon-as-a-Service © 2024 | All tools run server-side for maximum security</p>
+        <p>Recon_set © 2026 | All tools run server-side.</p>
       </footer>
     </div>
   );
