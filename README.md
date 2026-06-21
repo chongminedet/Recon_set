@@ -1,6 +1,27 @@
-Recon_set brings all essential reconnaissance tools across different environments.
-you can perfom scan with out using Virtual machine or installing additional tools on your windows.
+Recon_set: briging  all essential reconnaissance tools across different environments to the web.
+perfom scan with out using Virtual machine or installing additional tools on your windows.
 
-Local setup: 
-Install Dcoker: 
-gitclone this repo into docker 
+ ## Local Setup: 
+ Prerequisites: 
+1. [Docker](https://www.docker.com/products/docker-desktop/) installed and running
+
+2.Clone the repository:
+git clone https://github.com/chongminedet/Recon_set.git
+
+3. Build and start the containers:
+cd Recon_set. 
+docker compose up -d --build
+
+4. Open in frontend browser: http://localhost:3000
+## Services running: 
+
+| Service  | Port | Description              |
+|----------|------|--------------------------|
+| nginx    | 80   | Reverse proxy            |
+| api      | 5000 | Flask backend            |
+| frontend | 3000 | React app (internal)     |
+
+## Stop: 
+docker compose down. 
+
+Happy scanning （￣︶￣）↗　
