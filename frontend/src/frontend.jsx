@@ -1,39 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import './frontend.css';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000/api';
 
 const THEMES = [
-  { id: 'phantom', name: 'Phantom' },
-  { id: 'midnight', name: 'Midnight' },
-  { id: 'ocean', name: 'Ocean' },
-  { id: 'synthwave', name: 'Synthwave' },
-  { id: 'crimson', name: 'Crimson' },
-  { id: 'light', name: 'Light' },
+  { id: 'phantom', name: 'Phantom', color: '#00ff88' },
+  { id: 'midnight', name: 'Midnight', color: '#7c5cff' },
+  { id: 'ocean', name: 'Ocean', color: '#00d4ff' },
+  { id: 'synthwave', name: 'Synthwave', color: '#ff6ec7' },
+  { id: 'crimson', name: 'Crimson', color: '#ff3344' },
+  { id: 'light', name: 'Light', color: '#f0f2f5' },
 ];
 
+const DEFAULT_SETTINGS = {
+  theme: 'phantom',
+  scanTimeout: 300,
+  exportFormat: 'markdown',
+  autoSelectAll: false,
+  showToolDesc: true,
+  compactMode: false,
+};
+
 const TOOL_ICONS = {
-  'WHOIS': '⊕',
-  'DNS': '⊞',
-  'DNS (Full)': '⊠',
-  'Reverse DNS': '⇄',
-  'TLS Certificate': '⊙',
-  'HTTP Headers': '⊘',
-  'Nmap Basic': '⊛',
-  'Nmap Aggressive': '⚠',
-  'DNS Zone Transfer': '⊕',
-  'Sherlock': '⊕',
-  'Subfinder': '◎',
-  'theHarvester': '⚡',
-  'WhatWeb': '◈',
-  'WAFW00F': '◆',
-  'Nikto': '◇',
-  'Gobuster Dir': '▣',
-  'Gobuster DNS': '▤',
-  'FFUF': '▥',
-  'HTTPx': '▦',
-  'Masscan': '▧',
-  'Maigret': '⊕',
+  'WHOIS': '⊕', 'DNS': '⊞', 'DNS (Full)': '⊠', 'Reverse DNS': '⇄',
+  'TLS Certificate': '⊙', 'HTTP Headers': '⊘', 'Nmap Basic': '⊛',
+  'Nmap Aggressive': '⚠', 'DNS Zone Transfer': '⊕', 'Sherlock': '⊕',
+  'Subfinder': '◎', 'theHarvester': '⚡', 'WhatWeb': '◈', 'WAFW00F': '◆',
+  'Nikto': '◇', 'Gobuster Dir': '▣', 'Gobuster DNS': '▤', 'FFUF': '▥',
+  'HTTPx': '▦', 'Masscan': '▧', 'Maigret': '⊕',
 };
 
 const TOOL_DESCRIPTIONS = {
@@ -61,27 +55,12 @@ const TOOL_DESCRIPTIONS = {
 };
 
 const TOOL_TAGS = {
-  'WHOIS': 'OSINT',
-  'DNS': 'DNS',
-  'DNS (Full)': 'DNS',
-  'Reverse DNS': 'DNS',
-  'TLS Certificate': 'TLS',
-  'HTTP Headers': 'HTTP',
-  'Nmap Basic': 'NMAP',
-  'Nmap Aggressive': 'NMAP-AGGRO',
-  'DNS Zone Transfer': 'DNS',
-  'Sherlock': 'OSINT',
-  'Subfinder': 'DNS',
-  'theHarvester': 'OSINT',
-  'WhatWeb': 'HTTP',
-  'WAFW00F': 'HTTP',
-  'Nikto': 'HTTP',
-  'Gobuster Dir': 'HTTP',
-  'Gobuster DNS': 'DNS',
-  'FFUF': 'HTTP',
-  'HTTPx': 'HTTP',
-  'Masscan': 'NMAP',
-  'Maigret': 'OSINT',
+  'WHOIS': 'OSINT', 'DNS': 'DNS', 'DNS (Full)': 'DNS', 'Reverse DNS': 'DNS',
+  'TLS Certificate': 'TLS', 'HTTP Headers': 'HTTP', 'Nmap Basic': 'NMAP',
+  'Nmap Aggressive': 'NMAP-AGGRO', 'DNS Zone Transfer': 'DNS', 'Sherlock': 'OSINT',
+  'Subfinder': 'DNS', 'theHarvester': 'OSINT', 'WhatWeb': 'HTTP', 'WAFW00F': 'HTTP',
+  'Nikto': 'HTTP', 'Gobuster Dir': 'HTTP', 'Gobuster DNS': 'DNS', 'FFUF': 'HTTP',
+  'HTTPx': 'HTTP', 'Masscan': 'NMAP', 'Maigret': 'OSINT',
 };
 
 const SkullSVG = () => (
@@ -94,7 +73,102 @@ const SkullSVG = () => (
   </svg>
 );
 
+function SettingsPanel({ settings, onUpdate }) {
+  return (
+    <div className="settings-panel">
+      <h2 className="settings-title">Settings</h2>
+      <p className="settings-subtitle">Customize your reconnaissance environment.</p>
+
+      <div className="settings-section">
+        <h3 className="settings-section-title">Appearance</h3>
+        <div className="settings-row">
+          <label className="settings-label">Theme</label>
+          <div className="settings-theme-grid">
+            {THEMES.map((t) => (
+              <button
+                key={t.id}
+                className={`settings-theme-card ${settings.theme === t.id ? 'active' : ''}`}
+                onClick={() => onUpdate({ ...settings, theme: t.id })}
+              >
+                <span className="settings-theme-swatch" style={{ background: t.color }} />
+                <span className="settings-theme-name">{t.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="settings-row">
+          <label className="settings-label">Compact Mode</label>
+          <button
+            className={`settings-toggle ${settings.compactMode ? 'on' : ''}`}
+            onClick={() => onUpdate({ ...settings, compactMode: !settings.compactMode })}
+          >
+            <span className="settings-toggle-knob" />
+          </button>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <h3 className="settings-section-title">Scan Defaults</h3>
+        <div className="settings-row">
+          <label className="settings-label">Scan Timeout (seconds)</label>
+          <input
+            type="number"
+            className="settings-input"
+            value={settings.scanTimeout}
+            min={30}
+            max={600}
+            onChange={(e) => onUpdate({ ...settings, scanTimeout: parseInt(e.target.value) || 300 })}
+          />
+        </div>
+        <div className="settings-row">
+          <label className="settings-label">Default Export Format</label>
+          <select
+            className="settings-select"
+            value={settings.exportFormat}
+            onChange={(e) => onUpdate({ ...settings, exportFormat: e.target.value })}
+          >
+            <option value="markdown">Markdown</option>
+            <option value="json">JSON</option>
+          </select>
+        </div>
+        <div className="settings-row">
+          <label className="settings-label">Auto-select All Tools</label>
+          <button
+            className={`settings-toggle ${settings.autoSelectAll ? 'on' : ''}`}
+            onClick={() => onUpdate({ ...settings, autoSelectAll: !settings.autoSelectAll })}
+          >
+            <span className="settings-toggle-knob" />
+          </button>
+        </div>
+        <div className="settings-row">
+          <label className="settings-label">Show Tool Descriptions</label>
+          <button
+            className={`settings-toggle ${settings.showToolDesc ? 'on' : ''}`}
+            onClick={() => onUpdate({ ...settings, showToolDesc: !settings.showToolDesc })}
+          >
+            <span className="settings-toggle-knob" />
+          </button>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <h3 className="settings-section-title">About</h3>
+        <div className="settings-about">
+          <p>Recon_Set v1.0</p>
+          <p className="settings-about-sub">Automated reconnaissance framework</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ReconApp() {
+  const [settings, setSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('recon-settings');
+      return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
+    } catch { return DEFAULT_SETTINGS; }
+  });
   const [targetType, setTargetType] = useState('Domain/IP');
   const [target, setTarget] = useState('');
   const [availableTools, setAvailableTools] = useState([]);
@@ -105,12 +179,12 @@ export default function ReconApp() {
   const [error, setError] = useState('');
   const [recentActivity, setRecentActivity] = useState([]);
   const [activeNav, setActiveNav] = useState('Dashboard');
-  const [theme, setTheme] = useState(() => localStorage.getItem('recon-theme') || 'phantom');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('recon-theme', theme);
-  }, [theme]);
+    document.documentElement.setAttribute('data-theme', settings.theme);
+    localStorage.setItem('recon-settings', JSON.stringify(settings));
+  }, [settings]);
 
   useEffect(() => {
     const fetchTools = async () => {
@@ -118,13 +192,17 @@ export default function ReconApp() {
         const response = await fetch(`${API_BASE}/tools?type=${encodeURIComponent(targetType)}`);
         const data = await response.json();
         setAvailableTools(data.tools);
-        setSelectedTools([]);
+        if (settings.autoSelectAll) {
+          setSelectedTools([...data.tools]);
+        } else {
+          setSelectedTools([]);
+        }
       } catch (err) {
         setError('Failed to load tools');
       }
     };
     fetchTools();
-  }, [targetType]);
+  }, [targetType, settings.autoSelectAll]);
 
   useEffect(() => {
     if (!scanId || !scanning) return;
@@ -143,7 +221,7 @@ export default function ReconApp() {
               time: 'Just now',
               progress: data.progress,
             },
-            ...prev.slice(0, 4),
+            ...prev.slice(0, 19),
           ]);
         }
       } catch (err) {
@@ -152,6 +230,17 @@ export default function ReconApp() {
     }, 5000);
     return () => clearInterval(pollInterval);
   }, [scanId, scanning]);
+
+  const filteredActivity = useMemo(() => {
+    if (!searchQuery.trim()) return recentActivity;
+    const q = searchQuery.toLowerCase();
+    return recentActivity.filter(
+      (a) =>
+        a.target.toLowerCase().includes(q) ||
+        a.tools.some((t) => t.toLowerCase().includes(q)) ||
+        a.status.toLowerCase().includes(q)
+    );
+  }, [recentActivity, searchQuery]);
 
   const handleToolToggle = (tool) => {
     setSelectedTools((prev) =>
@@ -198,6 +287,166 @@ export default function ReconApp() {
     }
   };
 
+  const renderDashboard = () => (
+    <>
+      <div className="scan-input-card">
+        <h2>Initialize New Recon Operation</h2>
+        <div className="scan-input-row">
+          <select
+            value={targetType}
+            onChange={(e) => setTargetType(e.target.value)}
+            className="scan-input"
+            style={{ flex: '0 0 160px' }}
+            disabled={scanning}
+          >
+            <option value="Domain/IP">Domain / IP</option>
+            <option value="Username">Username</option>
+            <option value="Email">Email</option>
+          </select>
+          <input
+            type="text"
+            value={target}
+            onChange={(e) => setTarget(e.target.value)}
+            placeholder={
+              targetType === 'Domain/IP'
+                ? 'Enter target domain or IP (e.g., example.com, 192.168.1.1)'
+                : targetType === 'Username'
+                ? 'Enter username (e.g., john_doe)'
+                : 'Enter email or domain (e.g., user@example.com)'
+            }
+            className="scan-input"
+            disabled={scanning}
+          />
+          <button className="execute-btn" onClick={handleStartScan} disabled={scanning}>
+            {scanning ? 'SCANNING...' : '▶ EXECUTE SCAN'}
+          </button>
+        </div>
+        {error && <div className="error-msg">{error}</div>}
+      </div>
+
+      <div className="module-config">
+        <div className="module-header">
+          <div>
+            <h2>Module Configuration</h2>
+            <p className="module-subtitle">Select the reconnaissance vectors for this operation.</p>
+          </div>
+          <div className="module-actions">
+            <button className="action-btn select-all" onClick={handleSelectAll}>Select ALL</button>
+            <button className="action-btn" onClick={handleClearAll}>Clear</button>
+          </div>
+        </div>
+        <div className={`tools-grid ${settings.compactMode ? 'compact' : ''}`}>
+          {availableTools.map((tool) => (
+            <div
+              key={tool}
+              className={`tool-card ${selectedTools.includes(tool) ? 'selected' : ''}`}
+              onClick={() => handleToolToggle(tool)}
+            >
+              <div className="tool-card-header">
+                <span className="tool-icon">{TOOL_ICONS[tool] || '⊕'}</span>
+                <span className={`tool-tag ${TOOL_TAGS[tool]?.toLowerCase()}`}>{TOOL_TAGS[tool]}</span>
+                <span className={`status-dot ${selectedTools.includes(tool) ? 'active' : ''}`} />
+              </div>
+              <h3 className="tool-card-name">{tool}</h3>
+              {settings.showToolDesc && (
+                <p className="tool-card-desc">{TOOL_DESCRIPTIONS[tool] || 'Reconnaissance tool.'}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {scanStatus && (
+        <div className="results-panel">
+          <h2>Scan Results</h2>
+          <div className="progress-section">
+            <div className="progress-header">
+              <span>Progress</span>
+              <span className="progress-percent">{scanStatus.progress}%</span>
+            </div>
+            <div className="progress-bar">
+              <div className="progress-fill" style={{ width: `${scanStatus.progress}%` }} />
+            </div>
+            <p className="status-text">Status: <strong>{scanStatus.status}</strong></p>
+          </div>
+          <div className="results-section">
+            {Object.entries(scanStatus.results).map(([tool, result]) => (
+              <details key={tool} className="result-item">
+                <summary className="result-title">
+                  <span>{tool}</span>
+                  <span className={`result-status ${result?.returncode === 0 ? 'success' : 'warning'}`}>
+                    {result?.returncode === 0 ? '✓' : '⚠'}
+                  </span>
+                </summary>
+                <div className="result-content">
+                  {result?.stdout && <pre className="result-output">{result.stdout}</pre>}
+                  {result?.error && <p className="result-error">Error: {result.error}</p>}
+                  {result?.stderr && result?.returncode !== 0 && <p className="result-error">{result.stderr}</p>}
+                </div>
+              </details>
+            ))}
+          </div>
+          {scanStatus.status === 'completed' && (
+            <div className="export-section">
+              <button onClick={() => handleExport(settings.exportFormat)} className="btn btn-secondary">
+                Download {settings.exportFormat === 'json' ? 'JSON' : 'Markdown'}
+              </button>
+              <button onClick={() => handleExport(settings.exportFormat === 'json' ? 'markdown' : 'json')} className="btn btn-secondary">
+                Download {settings.exportFormat === 'json' ? 'Markdown' : 'JSON'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
+
+  const renderActiveScans = () => (
+    <div className="placeholder-page">
+      <h2>Active Scans</h2>
+      <p className="placeholder-text">
+        {scanning
+          ? `Scan in progress... ${scanStatus?.progress || 0}% complete`
+          : 'No active scans running.'}
+      </p>
+      {scanning && scanStatus && (
+        <div className="progress-bar" style={{ maxWidth: 400 }}>
+          <div className="progress-fill" style={{ width: `${scanStatus.progress}%` }} />
+        </div>
+      )}
+    </div>
+  );
+
+  const renderScanHistory = () => (
+    <div className="placeholder-page">
+      <h2>Scan History</h2>
+      {recentActivity.length === 0 ? (
+        <p className="placeholder-text">No scan history yet. Start a scan from the Dashboard.</p>
+      ) : (
+        <div className="history-list">
+          {filteredActivity.map((a, i) => (
+            <div key={i} className={`history-item ${a.status}`}>
+              <span className={`history-status-dot ${a.status}`} />
+              <div className="history-info">
+                <span className="history-target">{a.target}</span>
+                <span className="history-meta">{a.time} — {a.tools.length} tools — {a.status}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderContent = () => {
+    switch (activeNav) {
+      case 'Active Scans': return renderActiveScans();
+      case 'Scan History': return renderScanHistory();
+      case 'Settings': return <SettingsPanel settings={settings} onUpdate={setSettings} />;
+      default: return renderDashboard();
+    }
+  };
+
   return (
     <div className="recon-app">
       {/* SIDEBAR */}
@@ -226,19 +475,9 @@ export default function ReconApp() {
           + NEW SCAN
         </button>
 
-        <div className="theme-switcher">
-          <div className="theme-label">Theme</div>
-          <div className="theme-options">
-            {THEMES.map((t) => (
-              <button
-                key={t.id}
-                className={`theme-dot ${theme === t.id ? 'active' : ''}`}
-                data-theme={t.id}
-                onClick={() => setTheme(t.id)}
-                title={t.name}
-              />
-            ))}
-          </div>
+        <div className="skull-decoration sidebar-skull">
+          <SkullSVG />
+          <span className="skull-text">Recon_set</span>
         </div>
       </aside>
 
@@ -249,121 +488,30 @@ export default function ReconApp() {
           <div className="topbar-right">
             <div className="search-bar">
               <span className="search-icon">⌕</span>
-              <input type="text" placeholder="Search targets, scans..." />
+              <input
+                type="text"
+                placeholder="Search scans, targets, tools..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button className="search-clear" onClick={() => setSearchQuery('')}>✕</button>
+              )}
             </div>
             <div className="topbar-icons">
-              <button className="icon-btn" onClick={() => setTheme(theme === 'phantom' ? 'light' : 'phantom')}>◐</button>
-              <button className="icon-btn">⚙</button>
-              <button className="icon-btn">👤</button>
+              <button
+                className="icon-btn"
+                onClick={() => setActiveNav('Settings')}
+                title="Settings"
+              >⚙</button>
+              <button className="icon-btn" title="Profile">👤</button>
             </div>
           </div>
         </header>
 
         <div className="content-grid">
           <div className="center-panel">
-            <div className="scan-input-card">
-              <h2>Initialize New Recon Operation</h2>
-              <div className="scan-input-row">
-                <select
-                  value={targetType}
-                  onChange={(e) => setTargetType(e.target.value)}
-                  className="scan-input"
-                  style={{ flex: '0 0 160px' }}
-                  disabled={scanning}
-                >
-                  <option value="Domain/IP">Domain / IP</option>
-                  <option value="Username">Username</option>
-                  <option value="Email">Email</option>
-                </select>
-                <input
-                  type="text"
-                  value={target}
-                  onChange={(e) => setTarget(e.target.value)}
-                  placeholder={
-                    targetType === 'Domain/IP'
-                      ? 'Enter target domain or IP (e.g., example.com, 192.168.1.1)'
-                      : targetType === 'Username'
-                      ? 'Enter username (e.g., john_doe)'
-                      : 'Enter email or domain (e.g., user@example.com)'
-                  }
-                  className="scan-input"
-                  disabled={scanning}
-                />
-                <button className="execute-btn" onClick={handleStartScan} disabled={scanning}>
-                  {scanning ? 'SCANNING...' : '▶ EXECUTE SCAN'}
-                </button>
-              </div>
-              {error && <div className="error-msg">{error}</div>}
-            </div>
-
-            <div className="module-config">
-              <div className="module-header">
-                <div>
-                  <h2>Module Configuration</h2>
-                  <p className="module-subtitle">Select the reconnaissance vectors for this operation.</p>
-                </div>
-                <div className="module-actions">
-                  <button className="action-btn select-all" onClick={handleSelectAll}>Select ALL</button>
-                  <button className="action-btn" onClick={handleClearAll}>Clear</button>
-                </div>
-              </div>
-              <div className="tools-grid">
-                {availableTools.map((tool) => (
-                  <div
-                    key={tool}
-                    className={`tool-card ${selectedTools.includes(tool) ? 'selected' : ''}`}
-                    onClick={() => handleToolToggle(tool)}
-                  >
-                    <div className="tool-card-header">
-                      <span className="tool-icon">{TOOL_ICONS[tool] || '⊕'}</span>
-                      <span className={`tool-tag ${TOOL_TAGS[tool]?.toLowerCase()}`}>{TOOL_TAGS[tool]}</span>
-                      <span className={`status-dot ${selectedTools.includes(tool) ? 'active' : ''}`} />
-                    </div>
-                    <h3 className="tool-card-name">{tool}</h3>
-                    <p className="tool-card-desc">{TOOL_DESCRIPTIONS[tool] || 'Reconnaissance tool.'}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {scanStatus && (
-              <div className="results-panel">
-                <h2>Scan Results</h2>
-                <div className="progress-section">
-                  <div className="progress-header">
-                    <span>Progress</span>
-                    <span className="progress-percent">{scanStatus.progress}%</span>
-                  </div>
-                  <div className="progress-bar">
-                    <div className="progress-fill" style={{ width: `${scanStatus.progress}%` }} />
-                  </div>
-                  <p className="status-text">Status: <strong>{scanStatus.status}</strong></p>
-                </div>
-                <div className="results-section">
-                  {Object.entries(scanStatus.results).map(([tool, result]) => (
-                    <details key={tool} className="result-item">
-                      <summary className="result-title">
-                        <span>{tool}</span>
-                        <span className={`result-status ${result?.returncode === 0 ? 'success' : 'warning'}`}>
-                          {result?.returncode === 0 ? '✓' : '⚠'}
-                        </span>
-                      </summary>
-                      <div className="result-content">
-                        {result?.stdout && <pre className="result-output">{result.stdout}</pre>}
-                        {result?.error && <p className="result-error">Error: {result.error}</p>}
-                        {result?.stderr && result?.returncode !== 0 && <p className="result-error">{result.stderr}</p>}
-                      </div>
-                    </details>
-                  ))}
-                </div>
-                {scanStatus.status === 'completed' && (
-                  <div className="export-section">
-                    <button onClick={() => handleExport('markdown')} className="btn btn-secondary">Download Markdown</button>
-                    <button onClick={() => handleExport('json')} className="btn btn-secondary">Download JSON</button>
-                  </div>
-                )}
-              </div>
-            )}
+            {renderContent()}
           </div>
 
           {/* RIGHT SIDEBAR */}
@@ -371,13 +519,17 @@ export default function ReconApp() {
             <div className="activity-panel">
               <div className="activity-header">
                 <h2>Recent Activity</h2>
-                <button className="dots-menu">•••</button>
+                {searchQuery && (
+                  <span className="activity-count">{filteredActivity.length} results</span>
+                )}
               </div>
               <div className="activity-list">
-                {recentActivity.length === 0 ? (
-                  <div className="activity-empty">No recent scans</div>
+                {filteredActivity.length === 0 ? (
+                  <div className="activity-empty">
+                    {searchQuery ? 'No matching scans' : 'No recent scans'}
+                  </div>
                 ) : (
-                  recentActivity.map((activity, i) => (
+                  filteredActivity.map((activity, i) => (
                     <div key={i} className="activity-item">
                       <div className={`activity-status ${activity.status}`}>
                         {activity.status === 'completed' ? '✓' : activity.status === 'failed' ? '✕' : '◎'}
@@ -402,11 +554,6 @@ export default function ReconApp() {
                   ))
                 )}
               </div>
-            </div>
-
-            <div className="skull-decoration">
-              <SkullSVG />
-              <span className="skull-text">Recon_set</span>
             </div>
           </aside>
         </div>
