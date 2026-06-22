@@ -13,7 +13,8 @@ services:
       - FLASK_ENV=development
       - FLASK_APP=app.py
       - FLASK_DEBUG=False
-      - STATS_API_KEY=recon-admin-key-change-me
+      - STATS_API_KEY=f4ec87486b7e6f8d83e53fdb37d0b77f9734ca1708d78b59c3cd5c58aa8c9b28
+
     volumes:
       - ./recon_results:/app/recon_results
       - ./logs:/app/logs
