@@ -26,21 +26,30 @@ RUN git clone --depth 1 https://github.com/urbanadventurer/WhatWeb.git /opt/what
 RUN git clone --depth 1 https://github.com/sullo/nikto.git /opt/nikto \
     && ln -s /opt/nikto/program/nikto.pl /usr/local/bin/nikto
 
-# Install Go tools with verified download URLs
+# Install subfinder
 RUN wget -q https://github.com/projectdiscovery/subfinder/releases/download/v2.14.0/subfinder_2.14.0_linux_amd64.zip \
-    && unzip subfinder_2.14.0_linux_amd64.zip -d /usr/local/bin \
-    && rm subfinder_2.14.0_linux_amd64.zip
+    && unzip -o subfinder_2.14.0_linux_amd64.zip -d /tmp/subfinder \
+    && mv /tmp/subfinder/subfinder /usr/local/bin/ \
+    && chmod +x /usr/local/bin/subfinder \
+    && rm -rf /tmp/subfinder subfinder_2.14.0_linux_amd64.zip
 
+# Install httpx
 RUN wget -q https://github.com/projectdiscovery/httpx/releases/download/v1.9.0/httpx_1.9.0_linux_amd64.zip \
-    && unzip httpx_1.9.0_linux_amd64.zip -d /usr/local/bin \
-    && rm httpx_1.9.0_linux_amd64.zip
+    && unzip -o httpx_1.9.0_linux_amd64.zip -d /tmp/httpx \
+    && mv /tmp/httpx/httpx /usr/local/bin/ \
+    && chmod +x /usr/local/bin/httpx \
+    && rm -rf /tmp/httpx httpx_1.9.0_linux_amd64.zip
 
+# Install ffuf
 RUN wget -q https://github.com/ffuf/ffuf/releases/download/v2.1.0/ffuf_2.1.0_linux_amd64.tar.gz \
     && tar xzf ffuf_2.1.0_linux_amd64.tar.gz -C /usr/local/bin \
+    && chmod +x /usr/local/bin/ffuf \
     && rm ffuf_2.1.0_linux_amd64.tar.gz
 
+# Install gobuster
 RUN wget -q https://github.com/OJ/gobuster/releases/download/v3.8.2/gobuster_Linux_x86_64.tar.gz \
     && tar xzf gobuster_Linux_x86_64.tar.gz -C /usr/local/bin \
+    && chmod +x /usr/local/bin/gobuster \
     && rm gobuster_Linux_x86_64.tar.gz
 
 # Install Python OSINT tools
