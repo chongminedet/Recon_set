@@ -7,7 +7,8 @@ import threading
 import json
 import os
 import uuid
-from datetime import datetime
+import sqlite3
+from datetime import datetime, timedelta
 from pathlib import Path
 import logging
 
@@ -38,6 +39,78 @@ logger = logging.getLogger(__name__)
 # Storage directory for results
 RESULTS_DIR = Path("recon_results")
 RESULTS_DIR.mkdir(exist_ok=True)
+
+# ============================================================================
+# PRIVATE STATS AUTH
+# ============================================================================
+
+STATS_API_KEY = os.environ.get("STATS_API_KEY", "recon-admin-key-change-me")
+
+def require_stats_auth(f):
+    """Decorator to protect stats endpoints with API key"""
+    from functools import wraps
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        key = request.headers.get("X-Stats-Key", "")
+        if key != STATS_API_KEY:
+            return jsonify({"error": "Unauthorized"}), 401
+        return f(*args, **kwargs)
+    return decorated
+
+# ============================================================================
+# VISITOR TRACKING DATABASE
+# ============================================================================
+
+VISITS_DB = Path("visits.db")
+
+def init_visits_db():
+    """Initialize the visits database"""
+    conn = sqlite3.connect(str(VISITS_DB))
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS visits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ip TEXT,
+        user_agent TEXT,
+        timestamp TEXT,
+        path TEXT,
+        session_id TEXT
+    )''')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_timestamp ON visits(timestamp)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_ip ON visits(ip)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_session ON visits(session_id)')
+    conn.commit()
+    conn.close()
+
+def log_visit():
+    """Log a visit to the database"""
+    try:
+        ip = request.remote_addr or 'unknown'
+        ua = request.headers.get('User-Agent', '')
+        ts = datetime.utcnow().isoformat()
+        path = request.path
+        # Use a session ID from cookie or generate one
+        session_id = request.headers.get('X-Session-ID', '')
+        if not session_id:
+            session_id = f"{ip}:{ua[:50]}"
+
+        conn = sqlite3.connect(str(VISITS_DB))
+        c = conn.cursor()
+        c.execute('INSERT INTO visits (ip, user_agent, timestamp, path, session_id) VALUES (?, ?, ?, ?, ?)',
+                  (ip, ua, ts, path, session_id))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.error(f"Failed to log visit: {str(e)}")
+
+# Initialize visits database on startup
+init_visits_db()
+
+@app.before_request
+def before_request_handler():
+    """Log every API request"""
+    # Skip logging for static files and OPTIONS requests
+    if request.method != 'OPTIONS' and request.path.startswith('/api/'):
+        log_visit()
 
 # ============================================================================
 # SCAN MANAGER CLASS
@@ -208,6 +281,110 @@ def health():
         "status": "healthy",
         "timestamp": datetime.now().isoformat()
     })
+
+@app.route("/api/stats", methods=["GET"])
+@limiter.limit("100 per hour")
+@require_stats_auth
+def get_stats():
+    """Get visitor statistics"""
+    try:
+        conn = sqlite3.connect(str(VISITS_DB))
+        c = conn.cursor()
+
+        # Total API requests
+        c.execute('SELECT COUNT(*) FROM visits')
+        total_requests = c.fetchone()[0]
+
+        # Unique IPs
+        c.execute('SELECT COUNT(DISTINCT ip) FROM visits')
+        unique_ips = c.fetchone()[0]
+
+        # Unique sessions
+        c.execute('SELECT COUNT(DISTINCT session_id) FROM visits')
+        unique_sessions = c.fetchone()[0]
+
+        # Today's requests
+        today = datetime.utcnow().strftime('%Y-%m-%d')
+        c.execute("SELECT COUNT(*) FROM visits WHERE timestamp LIKE ?", (f"{today}%",))
+        today_requests = c.fetchone()[0]
+
+        # Daily breakdown (last 30 days)
+        thirty_days_ago = (datetime.utcnow() - timedelta(days=30)).strftime('%Y-%m-%d')
+        c.execute("""
+            SELECT DATE(timestamp) as day, COUNT(*) as requests, COUNT(DISTINCT ip) as unique_ips
+            FROM visits
+            WHERE timestamp >= ?
+            GROUP BY day
+            ORDER BY day DESC
+        """, (thirty_days_ago,))
+        daily = [{'date': row[0], 'requests': row[1], 'unique_ips': row[2]} for row in c.fetchall()]
+
+        # Top endpoints
+        c.execute("""
+            SELECT path, COUNT(*) as count
+            FROM visits
+            GROUP BY path
+            ORDER BY count DESC
+            LIMIT 10
+        """)
+        top_endpoints = [{'path': row[0], 'count': row[1]} for row in c.fetchall()]
+
+        # Active scanners (unique IPs that started a scan)
+        c.execute("""
+            SELECT COUNT(DISTINCT ip) FROM visits WHERE path = '/api/scan'
+        """)
+        active_scanners = c.fetchone()[0]
+
+        # Scans initiated
+        c.execute("SELECT COUNT(*) FROM visits WHERE path = '/api/scan' AND timestamp >= ?",
+                  (thirty_days_ago,))
+        scans_initiated = c.fetchone()[0]
+
+        conn.close()
+
+        return jsonify({
+            'total_requests': total_requests,
+            'unique_ips': unique_ips,
+            'unique_sessions': unique_sessions,
+            'today_requests': today_requests,
+            'active_scanners': active_scanners,
+            'scans_initiated': scans_initiated,
+            'daily': daily,
+            'top_endpoints': top_endpoints,
+        })
+
+    except Exception as e:
+        logger.error(f"Failed to get stats: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve stats'}), 500
+
+@app.route("/api/stats/scan", methods=["POST"])
+@limiter.limit("100 per hour")
+@require_stats_auth
+def log_scan_event():
+    """Log a scan event (called from frontend when scan starts)"""
+    try:
+        data = request.json or {}
+        target_type = data.get('target_type', 'unknown')
+        tools_count = len(data.get('tools', []))
+
+        conn = sqlite3.connect(str(VISITS_DB))
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS scan_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ip TEXT,
+            timestamp TEXT,
+            target_type TEXT,
+            tools_count INTEGER
+        )''')
+        c.execute('INSERT INTO scan_events (ip, timestamp, target_type, tools_count) VALUES (?, ?, ?, ?)',
+                  (request.remote_addr, datetime.utcnow().isoformat(), target_type, tools_count))
+        conn.commit()
+        conn.close()
+
+        return jsonify({'status': 'logged'})
+    except Exception as e:
+        logger.error(f"Failed to log scan event: {str(e)}")
+        return jsonify({'error': 'Failed to log'}), 500
 
 @app.route("/api/tools", methods=["GET"])
 @limiter.limit("500 per hour")

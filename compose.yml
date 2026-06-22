@@ -13,9 +13,11 @@ services:
       - FLASK_ENV=development
       - FLASK_APP=app.py
       - FLASK_DEBUG=False
+      - STATS_API_KEY=recon-admin-key-change-me
     volumes:
       - ./recon_results:/app/recon_results
       - ./logs:/app/logs
+      - ./visits.db:/app/visits.db
     networks:
       - recon-network
     restart: unless-stopped
