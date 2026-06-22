@@ -19,7 +19,7 @@ services:
     volumes:
       - ./recon_results:/app/recon_results
       - ./logs:/app/logs
-      - ./visits.db:/app/visits.db
+      - visits-data:/app/data
     networks:
       - recon-network
     restart: unless-stopped
@@ -80,6 +80,5 @@ networks:
 # ============================================================================
 # VOLUMES (Optional - for persistence)
 # ============================================================================
-# volumes:
-#   recon_results:
-#   logs:
+volumes:
+  visits-data:

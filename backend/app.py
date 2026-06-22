@@ -61,25 +61,30 @@ def require_stats_auth(f):
 # VISITOR TRACKING DATABASE
 # ============================================================================
 
-VISITS_DB = Path("visits.db")
+VISITS_DB = Path("data/visits.db")
 
 def init_visits_db():
     """Initialize the visits database"""
-    conn = sqlite3.connect(str(VISITS_DB))
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS visits (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        ip TEXT,
-        user_agent TEXT,
-        timestamp TEXT,
-        path TEXT,
-        session_id TEXT
-    )''')
-    c.execute('CREATE INDEX IF NOT EXISTS idx_timestamp ON visits(timestamp)')
-    c.execute('CREATE INDEX IF NOT EXISTS idx_ip ON visits(ip)')
-    c.execute('CREATE INDEX IF NOT EXISTS idx_session ON visits(session_id)')
-    conn.commit()
-    conn.close()
+    try:
+        VISITS_DB.parent.mkdir(parents=True, exist_ok=True)
+        conn = sqlite3.connect(str(VISITS_DB))
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS visits (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ip TEXT,
+            user_agent TEXT,
+            timestamp TEXT,
+            path TEXT,
+            session_id TEXT
+        )''')
+        c.execute('CREATE INDEX IF NOT EXISTS idx_timestamp ON visits(timestamp)')
+        c.execute('CREATE INDEX IF NOT EXISTS idx_ip ON visits(ip)')
+        c.execute('CREATE INDEX IF NOT EXISTS idx_session ON visits(session_id)')
+        conn.commit()
+        conn.close()
+        logger.info("Visits database initialized")
+    except Exception as e:
+        logger.error(f"Failed to initialize visits database: {str(e)}")
 
 def log_visit():
     """Log a visit to the database"""
