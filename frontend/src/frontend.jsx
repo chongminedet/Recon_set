@@ -14,12 +14,23 @@ const TOOL_ICONS = {
   'Nmap Aggressive': '⚠',
   'DNS Zone Transfer': '⊕',
   'Sherlock': '⊕',
+  'Subfinder': '◎',
+  'theHarvester': '⚡',
+  'WhatWeb': '◈',
+  'WAFW00F': '◆',
+  'Nikto': '◇',
+  'Gobuster Dir': '▣',
+  'Gobuster DNS': '▤',
+  'FFUF': '▥',
+  'HTTPx': '▦',
+  'Masscan': '▧',
+  'Maigret': '⊕',
 };
 
 const TOOL_DESCRIPTIONS = {
   'WHOIS': 'Domain registration details and administrative contacts.',
   'DNS': 'Standard A, AAAA, MX, and TXT record resolution.',
-  'DNS (Full)': 'Comprehensive subdomain brute forcing and discovery.',
+  'DNS (Full)': 'Comprehensive DNS record enumeration.',
   'Reverse DNS': 'PTR record lookups for target IP ranges.',
   'TLS Certificate': 'Extract Subject Alternative Names (SANs) and issuer info.',
   'HTTP Headers': 'Server identification, security headers, and tech stack mapping.',
@@ -27,6 +38,17 @@ const TOOL_DESCRIPTIONS = {
   'Nmap Aggressive': 'Full port range, OS detection, versioning, and default scripts.',
   'DNS Zone Transfer': 'Attempt AXFR queries against authoritative name servers.',
   'Sherlock': 'Search usernames across social media platforms.',
+  'Subfinder': 'Passive subdomain enumeration using multiple sources.',
+  'theHarvester': 'Gather emails, subdomains, and hosts from public sources.',
+  'WhatWeb': 'Identify web technologies, CMS, frameworks, and libraries.',
+  'WAFW00F': 'Detect and fingerprint Web Application Firewalls.',
+  'Nikto': 'Web server vulnerability scanner with 6700+ checks.',
+  'Gobuster Dir': 'Directory and file brute-force enumeration.',
+  'Gobuster DNS': 'Subdomain brute-force enumeration.',
+  'FFUF': 'Fast web fuzzer for directory, host, and parameter discovery.',
+  'HTTPx': 'HTTP probing with title, tech detection, and status codes.',
+  'Masscan': 'High-speed port scanner covering top 10000 ports.',
+  'Maigret': 'Advanced username OSINT across 3000+ sites with node analysis.',
 };
 
 const TOOL_TAGS = {
@@ -40,6 +62,17 @@ const TOOL_TAGS = {
   'Nmap Aggressive': 'NMAP-AGGRO',
   'DNS Zone Transfer': 'DNS',
   'Sherlock': 'OSINT',
+  'Subfinder': 'DNS',
+  'theHarvester': 'OSINT',
+  'WhatWeb': 'HTTP',
+  'WAFW00F': 'HTTP',
+  'Nikto': 'HTTP',
+  'Gobuster Dir': 'HTTP',
+  'Gobuster DNS': 'DNS',
+  'FFUF': 'HTTP',
+  'HTTPx': 'HTTP',
+  'Masscan': 'NMAP',
+  'Maigret': 'OSINT',
 };
 
 const ASCII_LOGO = `
@@ -240,11 +273,28 @@ export default function ReconApp() {
             <div className="scan-input-card">
               <h2>Initialize New Recon Operation</h2>
               <div className="scan-input-row">
+                <select
+                  value={targetType}
+                  onChange={(e) => setTargetType(e.target.value)}
+                  className="scan-input"
+                  style={{ flex: '0 0 160px' }}
+                  disabled={scanning}
+                >
+                  <option value="Domain/IP">Domain / IP</option>
+                  <option value="Username">Username</option>
+                  <option value="Email">Email</option>
+                </select>
                 <input
                   type="text"
                   value={target}
                   onChange={(e) => setTarget(e.target.value)}
-                  placeholder="Enter Target Domain or IP (e.g., example.com, 192.168.1.1)"
+                  placeholder={
+                    targetType === 'Domain/IP'
+                      ? 'Enter target domain or IP (e.g., example.com, 192.168.1.1)'
+                      : targetType === 'Username'
+                      ? 'Enter username (e.g., john_doe)'
+                      : 'Enter email or domain (e.g., user@example.com)'
+                  }
                   className="scan-input"
                   disabled={scanning}
                 />

@@ -126,13 +126,12 @@ def validate_target(target, target_type):
     if not target or len(target) > 255:
         return False
     
-    if target_type == "Domain/IP":
-        # Check for dangerous characters
-        forbidden = [";", "|", "&", "$", "`", "\n", "\r"]
+    forbidden = [";", "|", "&", "$", "`", "\n", "\r"]
+    
+    if target_type in ("Domain/IP", "Email"):
         return not any(char in target for char in forbidden)
     
     elif target_type == "Username":
-        # Alphanumeric, underscore, hyphen only
         return target.replace("_", "").replace("-", "").replace(".", "").isalnum()
     
     return False
@@ -149,7 +148,18 @@ def execute_tool(tool, target):
         "Nmap Basic": f"nmap -sV -p 1-1000 --max-rate 100 {target}",
         "Nmap Aggressive": f"nmap -sV -p 1-1000 --script vuln --max-rate 50 {target}",
         "DNS Zone Transfer": f"dig @{target} axfr",
-        "Sherlock": f"sherlock {target} --timeout 1 2>/dev/null"
+        "Sherlock": f"sherlock {target} --timeout 1 2>/dev/null",
+        "Subfinder": f"subfinder -d {target} -silent",
+        "theHarvester": f"theHarvester -d {target} -b all",
+        "WhatWeb": f"whatweb {target} -a 3 --color=never",
+        "WAFW00F": f"wafw00f {target}",
+        "Nikto": f"nikto -h {target} -maxtime 180s",
+        "Gobuster Dir": f"gobuster dir -u https://{target} -w /usr/share/wordlists/dirb/common.txt -q --no-error",
+        "Gobuster DNS": f"gobuster dns -d {target} -w /usr/share/wordlists/dirb/common.txt -q --no-error",
+        "FFUF": f"ffuf -u https://{target}/FUZZ -w /usr/share/wordlists/dirb/common.txt -mc 200,301,302,403 -s",
+        "HTTPx": f"httpx -u {target} -silent -title -tech-detect -status-code",
+        "Masscan": f"masscan {target} -p1-10000 --rate=1000",
+        "Maigret": f"maigret {target}",
     }
     
     if tool not in commands:
@@ -157,10 +167,17 @@ def execute_tool(tool, target):
     
     logger.info(f"Executing {tool} against {target}")
     
-    # Increased timeouts for heavy scans
     timeout_map = {
         "Nmap Aggressive": 600,
         "Nmap Basic": 300,
+        "Nikto": 300,
+        "Gobuster Dir": 300,
+        "Gobuster DNS": 300,
+        "FFUF": 300,
+        "Masscan": 300,
+        "theHarvester": 300,
+        "Maigret": 300,
+        "HTTPx": 180,
     }
     timeout = timeout_map.get(tool, 120)
     
@@ -195,10 +212,29 @@ def get_tools():
             "HTTP Headers",
             "Nmap Basic",
             "Nmap Aggressive",
-            "DNS Zone Transfer"
+            "DNS Zone Transfer",
+            "Subfinder",
+            "WhatWeb",
+            "WAFW00F",
+            "Nikto",
+            "Gobuster Dir",
+            "Gobuster DNS",
+            "FFUF",
+            "HTTPx",
+            "Masscan"
         ],
         "Username": [
-            "Sherlock"
+            "Sherlock",
+            "Maigret"
+        ],
+        "Email": [
+            "theHarvester",
+            "Subfinder",
+            "WhatWeb",
+            "WAFW00F",
+            "Nikto",
+            "DNS",
+            "WHOIS"
         ]
     }
     
@@ -214,7 +250,18 @@ def get_tools():
             "Nmap Basic": "Basic network scanning with service detection",
             "Nmap Aggressive": "Aggressive Nmap scan with OS detection",
             "DNS Zone Transfer": "Attempt DNS zone transfer (AXFR)",
-            "Sherlock": "Search usernames across social media platforms"
+            "Sherlock": "Search usernames across social media platforms",
+            "Subfinder": "Passive subdomain enumeration using multiple sources",
+            "theHarvester": "Gather emails, subdomains, hosts from public sources",
+            "WhatWeb": "Identify web technologies, CMS, frameworks",
+            "WAFW00F": "Detect Web Application Firewalls",
+            "Nikto": "Web server vulnerability scanner",
+            "Gobuster Dir": "Directory and file brute-force enumeration",
+            "Gobuster DNS": "Subdomain brute-force enumeration",
+            "FFUF": "Fast web fuzzer for directory and parameter discovery",
+            "HTTPx": "HTTP probing with title, tech detection, status codes",
+            "Masscan": "High-speed port scanner (top 10000 ports)",
+            "Maigret": "Advanced username OSINT across 3000+ sites"
         }
     })
 
