@@ -159,58 +159,6 @@ function CaptchaChallenge({ onVerify, onCancel }) {
 }
 
 function SettingsPanel({ settings, onUpdate }) {
-  const [stats, setStats] = useState(null);
-  const [statsLoading, setStatsLoading] = useState(true);
-  const [statsKey, setStatsKey] = useState(() => localStorage.getItem('recon-stats-key') || '');
-  const [statsUnlocked, setStatsUnlocked] = useState(() => !!localStorage.getItem('recon-stats-key'));
-  const [statsError, setStatsError] = useState('');
-
-  const fetchStats = async (key) => {
-    setStatsLoading(true);
-    setStatsError('');
-    try {
-      const response = await fetch(`${API_BASE}/stats`, {
-        headers: { 'X-Stats-Key': key || statsKey }
-      });
-      if (response.status === 401) {
-        setStatsError('Invalid key');
-        setStatsUnlocked(false);
-        localStorage.removeItem('recon-stats-key');
-        return;
-      }
-      const data = await response.json();
-      setStats(data);
-      setStatsUnlocked(true);
-    } catch (err) {
-      console.error('Failed to load stats:', err);
-      setStatsError('Failed to load stats');
-    } finally {
-      setStatsLoading(false);
-    }
-  };
-
-  const handleUnlock = () => {
-    if (!statsKey.trim()) return;
-    localStorage.setItem('recon-stats-key', statsKey.trim());
-    fetchStats(statsKey.trim());
-  };
-
-  const handleLock = () => {
-    setStats(null);
-    setStatsUnlocked(false);
-    setStatsKey('');
-    setStatsError('');
-    localStorage.removeItem('recon-stats-key');
-  };
-
-  useEffect(() => {
-    if (statsUnlocked && statsKey) {
-      fetchStats(statsKey);
-    } else {
-      setStatsLoading(false);
-    }
-  }, []);
-
   return (
     <div className="settings-panel">
       <h2 className="settings-title">Settings</h2>
@@ -286,61 +234,6 @@ function SettingsPanel({ settings, onUpdate }) {
             <span className="settings-toggle-knob" />
           </button>
         </div>
-      </div>
-
-      <div className="settings-section">
-        <h3 className="settings-section-title">Visitor Analytics</h3>
-        {!statsUnlocked ? (
-          <div className="stats-lock">
-            <p className="settings-about-sub" style={{ marginBottom: 10 }}>Enter admin key to view analytics</p>
-            <div className="stats-lock-row">
-              <input
-                type="password"
-                className="settings-input"
-                placeholder="Admin key"
-                value={statsKey}
-                onChange={(e) => { setStatsKey(e.target.value); setStatsError(''); }}
-                onKeyDown={(e) => e.key === 'Enter' && handleUnlock()}
-              />
-              <button className="action-btn" onClick={handleUnlock} style={{ flex: '0 0 auto' }}>Unlock</button>
-            </div>
-            {statsError && <div className="captcha-error" style={{ marginTop: 8 }}>{statsError}</div>}
-          </div>
-        ) : statsLoading ? (
-          <p className="settings-about-sub">Loading stats...</p>
-        ) : stats && !stats.error ? (
-          <div>
-            <div className="stats-grid">
-              <div className="stat-card">
-                <span className="stat-value">{stats.total_requests?.toLocaleString()}</span>
-                <span className="stat-label">Total Requests</span>
-              </div>
-              <div className="stat-card">
-                <span className="stat-value">{stats.unique_ips?.toLocaleString()}</span>
-                <span className="stat-label">Unique Visitors</span>
-              </div>
-              <div className="stat-card">
-                <span className="stat-value">{stats.today_requests?.toLocaleString()}</span>
-                <span className="stat-label">Today</span>
-              </div>
-              <div className="stat-card">
-                <span className="stat-value">{stats.scans_initiated?.toLocaleString()}</span>
-                <span className="stat-label">Scans (30d)</span>
-              </div>
-              <div className="stat-card">
-                <span className="stat-value">{stats.active_scanners?.toLocaleString()}</span>
-                <span className="stat-label">Active Scanners</span>
-              </div>
-              <div className="stat-card">
-                <span className="stat-value">{stats.unique_sessions?.toLocaleString()}</span>
-                <span className="stat-label">Sessions</span>
-              </div>
-            </div>
-            <button className="action-btn" onClick={handleLock} style={{ marginTop: 12 }}>Lock Stats</button>
-          </div>
-        ) : (
-          <p className="settings-about-sub">Stats unavailable</p>
-        )}
       </div>
 
       <div className="settings-section">

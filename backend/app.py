@@ -620,6 +620,104 @@ def index():
     })
 
 # ============================================================================
+# HIDDEN ADMIN DASHBOARD
+# ============================================================================
+
+ADMIN_PATH = os.environ.get("ADMIN_PATH", "a8f3k2")
+
+@app.route(f"/{ADMIN_PATH}", methods=["GET"])
+def admin_dashboard():
+    """Hidden admin dashboard - only accessible if you know the URL + key"""
+    return '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recon_Set - Admin</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0a0f1a;color:#e8eaed;font-family:'JetBrains Mono',monospace;padding:20px}
+  h1{color:#00ff88;margin-bottom:8px;font-size:20px}
+  .sub{color:#7a8ba8;font-size:12px;margin-bottom:20px}
+  #login{max-width:350px;margin:80px auto;text-align:center}
+  #login input{width:100%;padding:12px;background:#0c1420;border:1px solid #1a2a40;border-radius:8px;color:#e8eaed;font-size:14px;font-family:inherit;margin-bottom:10px;outline:none}
+  #login input:focus{border-color:#00ff88}
+  #login button{width:100%;padding:12px;background:#00ff88;color:#000;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit}
+  #login button:hover{box-shadow:0 0 20px rgba(0,255,136,0.3)}
+  .error{color:#ff4757;font-size:12px;margin-top:8px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+  .card{background:#111c2e;border:1px solid #1a2a40;border-radius:8px;padding:16px;text-align:center}
+  .card .val{font-size:24px;font-weight:700;color:#00ff88}
+  .card .lbl{font-size:10px;color:#7a8ba8;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{text-align:left;color:#7a8ba8;padding:8px;border-bottom:1px solid #1a2a40;font-size:10px;text-transform:uppercase}
+  td{padding:8px;border-bottom:1px solid #1a2a40}
+  .bar{height:4px;background:#1a2a40;border-radius:2px;margin-top:4px}
+  .bar-fill{height:100%;background:#00ff88;border-radius:2px;transition:width .3s}
+  h2{font-size:14px;margin-bottom:12px;color:#e8eaed}
+  #dashboard{display:none}
+</style>
+</head>
+<body>
+<div id="login">
+  <h1>Recon_Set.</h1>
+  <p class="sub">Admin Dashboard</p>
+  <input type="password" id="key" placeholder="Admin key" autofocus>
+  <button onclick="unlock()">ACCESS</button>
+  <div class="error" id="err"></div>
+</div>
+<div id="dashboard">
+  <h1>Recon_Set. — Admin Dashboard</h1>
+  <p class="sub">Private analytics</p>
+  <div class="grid" id="stats"></div>
+  <h2>Daily Traffic (30 days)</h2>
+  <div id="daily"></div>
+  <h2 style="margin-top:20px">Top Endpoints</h2>
+  <table id="endpoints"><thead><tr><th>Path</th><th>Requests</th></tr></thead><tbody></tbody></table>
+</div>
+<script>
+let KEY='';
+async function unlock(){
+  KEY=document.getElementById('key').value;
+  if(!KEY)return;
+  try{
+    const r=await fetch('/api/stats',{headers:{'X-Stats-Key':KEY}});
+    if(r.status===401){document.getElementById('err').textContent='Invalid key';return}
+    const d=await r.json();
+    document.getElementById('login').style.display='none';
+    document.getElementById('dashboard').style.display='block';
+    document.getElementById('stats').innerHTML=[
+      {v:d.total_requests,l:'Total Requests'},
+      {v:d.unique_ips,l:'Unique Visitors'},
+      {v:d.today_requests,l:'Today'},
+      {v:d.scans_initiated,l:'Scans (30d)'},
+      {v:d.active_scanners,l:'Active Scanners'},
+      {v:d.unique_sessions,l:'Sessions'}
+    ].map(s=>`<div class="card"><div class="val">${(s.v||0).toLocaleString()}</div><div class="lbl">${s.l}</div></div>`).join('');
+    const maxR=Math.max(...d.daily.map(x=>x.requests),1);
+    document.getElementById('daily').innerHTML=d.daily.slice(0,14).map(x=>`
+      <div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#7a8ba8">
+          <span>${x.date}</span><span>${x.requests} req / ${x.unique_ips} ips</span>
+        </div>
+        <div class="bar"><div class="bar-fill" style="width:${(x.requests/maxR*100)}%"></div>
+      </div></div>`).join('');
+    document.querySelector('#endpoints tbody').innerHTML=d.top_endpoints.map(x=>
+      `<tr><td>${x.path}</td><td>${x.count}</td></tr>`
+    ).join('');
+  }catch(e){document.getElementById('err').textContent='Connection error'}
+}
+document.getElementById('key').addEventListener('keydown',e=>{if(e.key==='Enter')unlock()});
+</script>
+</body>
+</html>'''
+
+@app.route(f"/{ADMIN_PATH}/stats", methods=["GET"])
+@require_stats_auth
+def admin_stats_api():
+    """Stats API for admin dashboard"""
+    return get_stats()
+
+# ============================================================================
 # MAIN
 # ============================================================================
 
