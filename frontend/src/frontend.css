@@ -134,7 +134,28 @@
   --sidebar-bg: #ffffff;
   --sidebar-border: #e0e4ea;
   --scanline-opacity: 0.02;
-  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* CATPPUCCIN MOCHA - pastel dark */
+[data-theme="catppuccin"] {
+  --bg-primary: #1e1e2e;
+  --bg-secondary: #181825;
+  --bg-card: #313244;
+  --bg-card-hover: #45475a;
+  --bg-input: #11111b;
+  --border-color: #45475a;
+  --accent: #cba6f7;
+  --accent-dim: rgba(203, 166, 247, 0.15);
+  --accent-glow: rgba(203, 166, 247, 0.3);
+  --yellow: #f9e2af;
+  --red: #f38ba8;
+  --text-primary: #cdd6f4;
+  --text-secondary: #a6adc8;
+  --text-muted: #6c7086;
+  --sidebar-bg: #181825;
+  --sidebar-border: #313244;
+  --scanline-opacity: 0.04;
 }
 
 /* =====================================================================
@@ -289,6 +310,7 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: v
 .theme-dot[data-theme="ocean"] { background: #00d4ff; }
 .theme-dot[data-theme="synthwave"] { background: #ff6ec7; }
 .theme-dot[data-theme="crimson"] { background: #ff3344; }
+.theme-dot[data-theme="catppuccin"] { background: #cba6f7; }
 .theme-dot[data-theme="light"] { background: #f0f2f5; border-color: #ccc; }
 
 .theme-dot.active::after {

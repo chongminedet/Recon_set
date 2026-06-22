@@ -9,6 +9,7 @@ const THEMES = [
   { id: 'ocean', name: 'Ocean', color: '#00d4ff' },
   { id: 'synthwave', name: 'Synthwave', color: '#ff6ec7' },
   { id: 'crimson', name: 'Crimson', color: '#ff3344' },
+  { id: 'catppuccin', name: 'Catppuccin', color: '#cba6f7' },
   { id: 'light', name: 'Light', color: '#f0f2f5' },
 ];
 
