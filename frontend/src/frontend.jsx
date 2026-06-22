@@ -3,6 +3,15 @@ import './frontend.css';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000/api';
 
+const THEMES = [
+  { id: 'phantom', name: 'Phantom' },
+  { id: 'midnight', name: 'Midnight' },
+  { id: 'ocean', name: 'Ocean' },
+  { id: 'synthwave', name: 'Synthwave' },
+  { id: 'crimson', name: 'Crimson' },
+  { id: 'light', name: 'Light' },
+];
+
 const TOOL_ICONS = {
   'WHOIS': '⊕',
   'DNS': '⊞',
@@ -75,7 +84,15 @@ const TOOL_TAGS = {
   'Maigret': 'OSINT',
 };
 
-
+const SkullSVG = () => (
+  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M24 4C14.06 4 6 12.06 6 22v6c0 4.42-2.24 8.26-5.64 10.54.18 1.36.68 2.62 1.46 3.7C3.68 44.36 5.78 46 8.5 46c1.84 0 3.5-.74 4.7-1.94C15 45.06 19.32 46 24 46s9-.94 10.8-1.94C36 45.26 37.66 46 39.5 46c2.72 0 4.82-1.64 6.68-3.76.78-1.08 1.28-2.34 1.46-3.7C44.24 36.26 42 32.42 42 28v-6C42 12.06 33.94 4 24 4z" stroke="currentColor" strokeWidth="2" fill="none"/>
+    <circle cx="17" cy="20" r="4" stroke="currentColor" strokeWidth="2" fill="none"/>
+    <circle cx="31" cy="20" r="4" stroke="currentColor" strokeWidth="2" fill="none"/>
+    <path d="M20 30v4M24 30v4M28 30v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M16 33h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
 
 export default function ReconApp() {
   const [targetType, setTargetType] = useState('Domain/IP');
@@ -88,7 +105,12 @@ export default function ReconApp() {
   const [error, setError] = useState('');
   const [recentActivity, setRecentActivity] = useState([]);
   const [activeNav, setActiveNav] = useState('Dashboard');
-  const [scanHistory, setScanHistory] = useState([]);
+  const [theme, setTheme] = useState(() => localStorage.getItem('recon-theme') || 'phantom');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('recon-theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     const fetchTools = async () => {
@@ -137,48 +159,24 @@ export default function ReconApp() {
     );
   };
 
-  const handleSelectAll = () => {
-    setSelectedTools([...availableTools]);
-  };
-
-  const handleClearAll = () => {
-    setSelectedTools([]);
-  };
+  const handleSelectAll = () => setSelectedTools([...availableTools]);
+  const handleClearAll = () => setSelectedTools([]);
 
   const handleStartScan = async () => {
     setError('');
-    if (!target.trim()) {
-      setError('Please enter a target');
-      return;
-    }
-    if (selectedTools.length === 0) {
-      setError('Please select at least one tool');
-      return;
-    }
+    if (!target.trim()) { setError('Please enter a target'); return; }
+    if (selectedTools.length === 0) { setError('Please select at least one tool'); return; }
     try {
       setScanning(true);
       const response = await fetch(`${API_BASE}/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          target: target.trim(),
-          target_type: targetType,
-          tools: selectedTools,
-        }),
+        body: JSON.stringify({ target: target.trim(), target_type: targetType, tools: selectedTools }),
       });
       const data = await response.json();
-      if (!response.ok) {
-        setError(data.error || 'Failed to start scan');
-        setScanning(false);
-        return;
-      }
+      if (!response.ok) { setError(data.error || 'Failed to start scan'); setScanning(false); return; }
       setScanId(data.scan_id);
-      setScanStatus({
-        id: data.scan_id,
-        status: 'pending',
-        progress: 0,
-        results: {},
-      });
+      setScanStatus({ id: data.scan_id, status: 'pending', progress: 0, results: {} });
     } catch (err) {
       setError('Error starting scan: ' + err.message);
       setScanning(false);
@@ -204,19 +202,7 @@ export default function ReconApp() {
     <div className="recon-app">
       {/* SIDEBAR */}
       <aside className="sidebar">
-        <div className="sidebar-profile">
-          <div className="profile-avatar">
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-              <circle cx="20" cy="20" r="20" fill="#1a2332"/>
-              <circle cx="20" cy="14" r="6" stroke="#00ff88" strokeWidth="1.5" fill="none"/>
-              <path d="M8 34c0-6.627 5.373-12 12-12s12 5.373 12 12" stroke="#00ff88" strokeWidth="1.5" fill="none"/>
-            </svg>
-          </div>
-          <div className="profile-info">
-            <span className="profile-name">Vigilance AI</span>
-            <span className="profile-role">Cyber Recon Ops</span>
-          </div>
-        </div>
+        <div className="sidebar-brand">Recon_Set.</div>
 
         <nav className="sidebar-nav">
           {['Dashboard', 'Active Scans', 'Scan History', 'Settings'].map((item) => (
@@ -239,11 +225,25 @@ export default function ReconApp() {
         <button className="new-scan-btn" onClick={() => setActiveNav('Dashboard')}>
           + NEW SCAN
         </button>
+
+        <div className="theme-switcher">
+          <div className="theme-label">Theme</div>
+          <div className="theme-options">
+            {THEMES.map((t) => (
+              <button
+                key={t.id}
+                className={`theme-dot ${theme === t.id ? 'active' : ''}`}
+                data-theme={t.id}
+                onClick={() => setTheme(t.id)}
+                title={t.name}
+              />
+            ))}
+          </div>
+        </div>
       </aside>
 
       {/* MAIN AREA */}
       <div className="main-area">
-        {/* TOP BAR */}
         <header className="topbar">
           <h1 className="topbar-title">Recon_Set._.</h1>
           <div className="topbar-right">
@@ -252,18 +252,15 @@ export default function ReconApp() {
               <input type="text" placeholder="Search targets, scans..." />
             </div>
             <div className="topbar-icons">
-              <button className="icon-btn">🔔</button>
+              <button className="icon-btn" onClick={() => setTheme(theme === 'phantom' ? 'light' : 'phantom')}>◐</button>
               <button className="icon-btn">⚙</button>
               <button className="icon-btn">👤</button>
             </div>
           </div>
         </header>
 
-        {/* CONTENT */}
         <div className="content-grid">
-          {/* CENTER PANEL */}
           <div className="center-panel">
-            {/* SCAN INPUT */}
             <div className="scan-input-card">
               <h2>Initialize New Recon Operation</h2>
               <div className="scan-input-row">
@@ -292,18 +289,13 @@ export default function ReconApp() {
                   className="scan-input"
                   disabled={scanning}
                 />
-                <button
-                  className="execute-btn"
-                  onClick={handleStartScan}
-                  disabled={scanning}
-                >
+                <button className="execute-btn" onClick={handleStartScan} disabled={scanning}>
                   {scanning ? 'SCANNING...' : '▶ EXECUTE SCAN'}
                 </button>
               </div>
               {error && <div className="error-msg">{error}</div>}
             </div>
 
-            {/* TOOL SELECTION */}
             <div className="module-config">
               <div className="module-header">
                 <div>
@@ -312,10 +304,9 @@ export default function ReconApp() {
                 </div>
                 <div className="module-actions">
                   <button className="action-btn select-all" onClick={handleSelectAll}>Select ALL</button>
-                  <button className="action-btn clear-btn" onClick={handleClearAll}>Clear</button>
+                  <button className="action-btn" onClick={handleClearAll}>Clear</button>
                 </div>
               </div>
-
               <div className="tools-grid">
                 {availableTools.map((tool) => (
                   <div
@@ -325,9 +316,7 @@ export default function ReconApp() {
                   >
                     <div className="tool-card-header">
                       <span className="tool-icon">{TOOL_ICONS[tool] || '⊕'}</span>
-                      <span className={`tool-tag ${TOOL_TAGS[tool]?.toLowerCase()}`}>
-                        {TOOL_TAGS[tool]}
-                      </span>
+                      <span className={`tool-tag ${TOOL_TAGS[tool]?.toLowerCase()}`}>{TOOL_TAGS[tool]}</span>
                       <span className={`status-dot ${selectedTools.includes(tool) ? 'active' : ''}`} />
                     </div>
                     <h3 className="tool-card-name">{tool}</h3>
@@ -337,7 +326,6 @@ export default function ReconApp() {
               </div>
             </div>
 
-            {/* SCAN RESULTS */}
             {scanStatus && (
               <div className="results-panel">
                 <h2>Scan Results</h2>
@@ -351,37 +339,27 @@ export default function ReconApp() {
                   </div>
                   <p className="status-text">Status: <strong>{scanStatus.status}</strong></p>
                 </div>
-
                 <div className="results-section">
                   {Object.entries(scanStatus.results).map(([tool, result]) => (
                     <details key={tool} className="result-item">
                       <summary className="result-title">
-                        <span className="tool-name">{tool}</span>
+                        <span>{tool}</span>
                         <span className={`result-status ${result?.returncode === 0 ? 'success' : 'warning'}`}>
                           {result?.returncode === 0 ? '✓' : '⚠'}
                         </span>
                       </summary>
                       <div className="result-content">
-                        {result?.stdout && (
-                          <pre className="result-output">{result.stdout}</pre>
-                        )}
+                        {result?.stdout && <pre className="result-output">{result.stdout}</pre>}
                         {result?.error && <p className="result-error">Error: {result.error}</p>}
-                        {result?.stderr && result?.returncode !== 0 && (
-                          <p className="result-error">{result.stderr}</p>
-                        )}
+                        {result?.stderr && result?.returncode !== 0 && <p className="result-error">{result.stderr}</p>}
                       </div>
                     </details>
                   ))}
                 </div>
-
                 {scanStatus.status === 'completed' && (
                   <div className="export-section">
-                    <button onClick={() => handleExport('markdown')} className="btn btn-secondary">
-                      Download Markdown
-                    </button>
-                    <button onClick={() => handleExport('json')} className="btn btn-secondary">
-                      Download JSON
-                    </button>
+                    <button onClick={() => handleExport('markdown')} className="btn btn-secondary">Download Markdown</button>
+                    <button onClick={() => handleExport('json')} className="btn btn-secondary">Download JSON</button>
                   </div>
                 )}
               </div>
@@ -395,7 +373,6 @@ export default function ReconApp() {
                 <h2>Recent Activity</h2>
                 <button className="dots-menu">•••</button>
               </div>
-
               <div className="activity-list">
                 {recentActivity.length === 0 ? (
                   <div className="activity-empty">No recent scans</div>
@@ -427,7 +404,10 @@ export default function ReconApp() {
               </div>
             </div>
 
-
+            <div className="skull-decoration">
+              <SkullSVG />
+              <span className="skull-text">Recon_set</span>
+            </div>
           </aside>
         </div>
       </div>
