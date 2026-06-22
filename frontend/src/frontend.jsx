@@ -630,7 +630,6 @@ export default function ReconApp() {
                 onClick={() => setActiveNav('Settings')}
                 title="Settings"
               >⚙</button>
-              <button className="icon-btn" title="Profile">👤</button>
             </div>
           </div>
         </header>
