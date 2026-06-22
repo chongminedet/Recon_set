@@ -23,6 +23,5 @@ docker compose up -d --build
 ## Stop: 
 docker compose down. 
 
-Happy scanning ∩╝ê∩┐ú∩╕╢∩┐ú∩╝ëΓåùπÇÇ
-
+Happy scanning  （￣︶￣）↗
 
