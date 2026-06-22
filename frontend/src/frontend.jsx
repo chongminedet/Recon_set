@@ -31,6 +31,141 @@ const TOOL_ICONS = {
   'HTTPx': '▦', 'Masscan': '▧', 'Maigret': '⊕',
 };
 
+// SVG Icon Components
+const Icon = ({ name, size = 18, className = '' }) => {
+  const icons = {
+    dashboard: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect x="3" y="3" width="7" height="7" rx="1"/>
+        <rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/>
+        <rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+    ),
+    radar: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="12" cy="12" r="10"/>
+        <circle cx="12" cy="12" r="6"/>
+        <circle cx="12" cy="12" r="2"/>
+        <line x1="12" y1="2" x2="12" y2="6"/>
+      </svg>
+    ),
+    history: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+    ),
+    settings: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    ),
+    search: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    ),
+    plus: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+    ),
+    check: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    ),
+    x: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    ),
+    warning: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    ),
+    chevron: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    ),
+    download: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    ),
+    scan: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+    ),
+    ghost: (
+      <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <path d="M24 4C14.06 4 6 12.06 6 22v6c0 4.42-2.24 8.26-5.64 10.54.18 1.36.68 2.62 1.46 3.7C3.68 44.36 5.78 46 8.5 46c1.84 0 3.5-.74 4.7-1.94C15 45.06 19.32 46 24 46s9-.94 10.8-1.94C36 45.26 37.66 46 39.5 46c2.72 0 4.82-1.64 6.68-3.76.78-1.08 1.28-2.34 1.46-3.7C44.24 36.26 42 32.42 42 28v-6C42 12.06 33.94 4 24 4z" stroke="currentColor" strokeWidth="2" fill="none"/>
+        <circle cx="17" cy="20" r="4" stroke="currentColor" strokeWidth="2" fill="none"/>
+        <circle cx="31" cy="20" r="4" stroke="currentColor" strokeWidth="2" fill="none"/>
+        <path d="M20 30v4M24 30v4M28 30v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M16 33h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+    port: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+        <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+        <line x1="6" y1="6" x2="6.01" y2="6"/>
+        <line x1="6" y1="18" x2="6.01" y2="18"/>
+      </svg>
+    ),
+    globe: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+      </svg>
+    ),
+    shield: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+    ),
+    user: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+    ),
+    mail: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+        <polyline points="22,6 12,13 2,6"/>
+      </svg>
+    ),
+    zap: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+    ),
+    lock: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+    ),
+  };
+  return icons[name] || icons.dashboard;
+};
+
 const TOOL_DESCRIPTIONS = {
   'WHOIS': 'Domain registration details and administrative contacts.',
   'DNS': 'Standard A, AAAA, MX, and TXT record resolution.',
@@ -122,7 +257,7 @@ function CaptchaChallenge({ onVerify, onCancel }) {
     <div className="captcha-overlay" onClick={onCancel}>
       <div className="captcha-card" onClick={(e) => e.stopPropagation()}>
         <div className="captcha-header">
-          <span className="captcha-icon">⚡</span>
+          <span className="captcha-icon"><Icon name="zap" size={28} /></span>
           <div>
             <div className="captcha-title">Verification Required</div>
             <div className="captcha-subtitle">Solve to confirm this is not an automated request</div>
@@ -577,32 +712,40 @@ export default function ReconApp() {
     <div className="recon-app">
       {/* SIDEBAR */}
       <aside className="sidebar">
-        <div className="sidebar-brand">Recon_Set.</div>
+        <div className="sidebar-brand">
+          <Icon name="ghost" size={24} className="brand-ghost" />
+          Recon_Set.
+        </div>
 
         <nav className="sidebar-nav">
-          {['Dashboard', 'Active Scans', 'Scan History', 'Settings'].map((item) => (
+          {[
+            { name: 'Dashboard', icon: 'dashboard' },
+            { name: 'Active Scans', icon: 'radar' },
+            { name: 'Scan History', icon: 'history' },
+            { name: 'Settings', icon: 'settings' },
+          ].map((item) => (
             <button
-              key={item}
-              className={`nav-item ${activeNav === item ? 'active' : ''}`}
-              onClick={() => setActiveNav(item)}
+              key={item.name}
+              className={`nav-item ${activeNav === item.name ? 'active' : ''}`}
+              onClick={() => setActiveNav(item.name)}
             >
               <span className="nav-icon">
-                {item === 'Dashboard' && '⊞'}
-                {item === 'Active Scans' && '◎'}
-                {item === 'Scan History' && '↻'}
-                {item === 'Settings' && '⚙'}
+                <Icon name={item.icon} size={18} />
               </span>
-              {item}
+              {item.name}
             </button>
           ))}
         </nav>
 
         <button className="new-scan-btn" onClick={handleNewScan}>
-          + NEW SCAN
+          <Icon name="plus" size={16} />
+          NEW SCAN
         </button>
 
         <div className="skull-decoration sidebar-skull">
-          <SkullSVG />
+          <div className="ghost-mascot">
+            <SkullSVG />
+          </div>
           <span className="skull-text">Recon_set</span>
         </div>
       </aside>
@@ -613,7 +756,7 @@ export default function ReconApp() {
           <h1 className="topbar-title">Recon_Set._.</h1>
           <div className="topbar-right">
             <div className="search-bar">
-              <span className="search-icon">⌕</span>
+              <Icon name="search" size={16} className="search-icon" />
               <input
                 type="text"
                 placeholder="Search scans, targets, tools..."
@@ -621,7 +764,9 @@ export default function ReconApp() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               {searchQuery && (
-                <button className="search-clear" onClick={() => setSearchQuery('')}>✕</button>
+                <button className="search-clear" onClick={() => setSearchQuery('')}>
+                  <Icon name="x" size={14} />
+                </button>
               )}
             </div>
             <div className="topbar-icons">
@@ -629,7 +774,9 @@ export default function ReconApp() {
                 className="icon-btn"
                 onClick={() => setActiveNav('Settings')}
                 title="Settings"
-              >⚙</button>
+              >
+                <Icon name="settings" size={18} />
+              </button>
             </div>
           </div>
         </header>
@@ -657,7 +804,7 @@ export default function ReconApp() {
                   filteredActivity.map((activity, i) => (
                     <div key={i} className="activity-item">
                       <div className={`activity-status ${activity.status}`}>
-                        {activity.status === 'completed' ? '✓' : activity.status === 'failed' ? '✕' : '◎'}
+                        {activity.status === 'completed' ? <Icon name="check" size={14} /> : activity.status === 'failed' ? <Icon name="x" size={14} /> : <Icon name="radar" size={14} />}
                       </div>
                       <div className="activity-info">
                         <span className="activity-target">{activity.target}</span>
@@ -686,18 +833,20 @@ export default function ReconApp() {
 
       {/* BOTTOM NAV (mobile) */}
       <nav className="bottom-nav">
-        {['Dashboard', 'Scans', 'History'].map((item) => (
+        {[
+          { name: 'Dashboard', icon: 'dashboard' },
+          { name: 'Scans', icon: 'radar' },
+          { name: 'History', icon: 'history' },
+        ].map((item) => (
           <button
-            key={item}
-            className={`bottom-nav-item ${activeNav === item ? 'active' : ''}`}
-            onClick={() => setActiveNav(item)}
+            key={item.name}
+            className={`bottom-nav-item ${activeNav === item.name ? 'active' : ''}`}
+            onClick={() => setActiveNav(item.name)}
           >
             <span className="bottom-nav-icon">
-              {item === 'Dashboard' && '⊞'}
-              {item === 'Scans' && '◎'}
-              {item === 'History' && '↻'}
+              <Icon name={item.icon} size={20} />
             </span>
-            {item}
+            {item.name}
           </button>
         ))}
       </nav>
