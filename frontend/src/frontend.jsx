@@ -3,6 +3,53 @@ import './frontend.css';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000/api';
 
+const TOOL_ICONS = {
+  'WHOIS': '⊕',
+  'DNS': '⊞',
+  'DNS (Full)': '⊠',
+  'Reverse DNS': '⇄',
+  'TLS Certificate': '⊙',
+  'HTTP Headers': '⊘',
+  'Nmap Basic': '⊛',
+  'Nmap Aggressive': '⚠',
+  'DNS Zone Transfer': '⊕',
+  'Sherlock': '⊕',
+};
+
+const TOOL_DESCRIPTIONS = {
+  'WHOIS': 'Domain registration details and administrative contacts.',
+  'DNS': 'Standard A, AAAA, MX, and TXT record resolution.',
+  'DNS (Full)': 'Comprehensive subdomain brute forcing and discovery.',
+  'Reverse DNS': 'PTR record lookups for target IP ranges.',
+  'TLS Certificate': 'Extract Subject Alternative Names (SANs) and issuer info.',
+  'HTTP Headers': 'Server identification, security headers, and tech stack mapping.',
+  'Nmap Basic': 'Top 1000 TCP port scan with standard service detection.',
+  'Nmap Aggressive': 'Full port range, OS detection, versioning, and default scripts.',
+  'DNS Zone Transfer': 'Attempt AXFR queries against authoritative name servers.',
+  'Sherlock': 'Search usernames across social media platforms.',
+};
+
+const TOOL_TAGS = {
+  'WHOIS': 'OSINT',
+  'DNS': 'DNS',
+  'DNS (Full)': 'DNS',
+  'Reverse DNS': 'DNS',
+  'TLS Certificate': 'TLS',
+  'HTTP Headers': 'HTTP',
+  'Nmap Basic': 'NMAP',
+  'Nmap Aggressive': 'NMAP-AGGRO',
+  'DNS Zone Transfer': 'DNS',
+  'Sherlock': 'OSINT',
+};
+
+const ASCII_LOGO = `
+    ██████╗ ███████╗██████╗ ██████╗ ███████╗██████╗ 
+    ██╔══██╗██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗
+    ██████╔╝█████╗  ██║  ██║██████╔╝█████╗  ██████╔╝
+    ██╔══██╗██╔══╝  ██║  ██║██╔══██╗██╔══╝  ██╔══██╗
+    ██║  ██║███████╗██████╔╝██████╔╝███████╗██║  ██║
+    ╚═╝  ╚═╝╚══════╝╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝`;
+
 export default function ReconApp() {
   const [targetType, setTargetType] = useState('Domain/IP');
   const [target, setTarget] = useState('');
@@ -12,15 +59,17 @@ export default function ReconApp() {
   const [scanId, setScanId] = useState(null);
   const [scanStatus, setScanStatus] = useState(null);
   const [error, setError] = useState('');
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [activeNav, setActiveNav] = useState('Dashboard');
+  const [scanHistory, setScanHistory] = useState([]);
 
-  // Fetch available tools when target type changes
   useEffect(() => {
     const fetchTools = async () => {
       try {
         const response = await fetch(`${API_BASE}/tools?type=${encodeURIComponent(targetType)}`);
         const data = await response.json();
         setAvailableTools(data.tools);
-        setSelectedTools([]); // Reset selection when type changes
+        setSelectedTools([]);
       } catch (err) {
         setError('Failed to load tools');
       }
@@ -28,30 +77,32 @@ export default function ReconApp() {
     fetchTools();
   }, [targetType]);
 
-  // Poll scan status
   useEffect(() => {
     if (!scanId || !scanning) return;
-
     const pollInterval = setInterval(async () => {
       try {
         const response = await fetch(`${API_BASE}/scan/${scanId}`);
         const data = await response.json();
         setScanStatus(data);
-
         if (data.status === 'completed' || data.status === 'failed') {
           setScanning(false);
+          setRecentActivity((prev) => [
+            {
+              target: target,
+              status: data.status,
+              tools: selectedTools,
+              time: 'Just now',
+              progress: data.progress,
+            },
+            ...prev.slice(0, 4),
+          ]);
         }
       } catch (err) {
         console.error('Failed to fetch scan status:', err);
       }
-    }, 5000); // Poll every 5 seconds
-
+    }, 5000);
     return () => clearInterval(pollInterval);
   }, [scanId, scanning]);
-
-  const handleTargetTypeChange = (e) => {
-    setTargetType(e.target.value);
-  };
 
   const handleToolToggle = (tool) => {
     setSelectedTools((prev) =>
@@ -59,19 +110,24 @@ export default function ReconApp() {
     );
   };
 
+  const handleSelectAll = () => {
+    setSelectedTools([...availableTools]);
+  };
+
+  const handleClearAll = () => {
+    setSelectedTools([]);
+  };
+
   const handleStartScan = async () => {
     setError('');
-
     if (!target.trim()) {
       setError('Please enter a target');
       return;
     }
-
     if (selectedTools.length === 0) {
       setError('Please select at least one tool');
       return;
     }
-
     try {
       setScanning(true);
       const response = await fetch(`${API_BASE}/scan`, {
@@ -83,15 +139,12 @@ export default function ReconApp() {
           tools: selectedTools,
         }),
       });
-
       const data = await response.json();
-
       if (!response.ok) {
         setError(data.error || 'Failed to start scan');
         setScanning(false);
         return;
       }
-
       setScanId(data.scan_id);
       setScanStatus({
         id: data.scan_id,
@@ -122,143 +175,222 @@ export default function ReconApp() {
 
   return (
     <div className="recon-app">
-      <header className="app-header">
-        <div className="header-content">
-          <h1>RECON_SET </h1>
-          <p> reconnaissance scanning in your browser</p>
+      {/* SIDEBAR */}
+      <aside className="sidebar">
+        <div className="sidebar-profile">
+          <div className="profile-avatar">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+              <circle cx="20" cy="20" r="20" fill="#1a2332"/>
+              <circle cx="20" cy="14" r="6" stroke="#00ff88" strokeWidth="1.5" fill="none"/>
+              <path d="M8 34c0-6.627 5.373-12 12-12s12 5.373 12 12" stroke="#00ff88" strokeWidth="1.5" fill="none"/>
+            </svg>
+          </div>
+          <div className="profile-info">
+            <span className="profile-name">Vigilance AI</span>
+            <span className="profile-role">Cyber Recon Ops</span>
+          </div>
         </div>
-      </header>
 
-      <main className="app-main">
-        <div className="container">
-          {/* Scan Configuration Panel */}
-          <div className="panel config-panel">
-            <h2>Configure Scan</h2>
+        <nav className="sidebar-nav">
+          {['Dashboard', 'Active Scans', 'Scan History', 'Settings'].map((item) => (
+            <button
+              key={item}
+              className={`nav-item ${activeNav === item ? 'active' : ''}`}
+              onClick={() => setActiveNav(item)}
+            >
+              <span className="nav-icon">
+                {item === 'Dashboard' && '⊞'}
+                {item === 'Active Scans' && '◎'}
+                {item === 'Scan History' && '↻'}
+                {item === 'Settings' && '⚙'}
+              </span>
+              {item}
+            </button>
+          ))}
+        </nav>
 
-            {/* Target Type Selection */}
-            <div className="form-group">
-              <label htmlFor="target-type">Target Type</label>
-              <select
-                id="target-type"
-                value={targetType}
-                onChange={handleTargetTypeChange}
-                className="form-control"
-              >
-                <option value="Domain/IP">Domain/IP Address</option>
-                <option value="Username">Username</option>
-              </select>
+        <button className="new-scan-btn" onClick={() => setActiveNav('Dashboard')}>
+          + NEW SCAN
+        </button>
+      </aside>
+
+      {/* MAIN AREA */}
+      <div className="main-area">
+        {/* TOP BAR */}
+        <header className="topbar">
+          <h1 className="topbar-title">Recon_Set._.</h1>
+          <div className="topbar-right">
+            <div className="search-bar">
+              <span className="search-icon">⌕</span>
+              <input type="text" placeholder="Search targets, scans..." />
+            </div>
+            <div className="topbar-icons">
+              <button className="icon-btn">🔔</button>
+              <button className="icon-btn">⚙</button>
+              <button className="icon-btn">👤</button>
+            </div>
+          </div>
+        </header>
+
+        {/* CONTENT */}
+        <div className="content-grid">
+          {/* CENTER PANEL */}
+          <div className="center-panel">
+            {/* SCAN INPUT */}
+            <div className="scan-input-card">
+              <h2>Initialize New Recon Operation</h2>
+              <div className="scan-input-row">
+                <input
+                  type="text"
+                  value={target}
+                  onChange={(e) => setTarget(e.target.value)}
+                  placeholder="Enter Target Domain or IP (e.g., example.com, 192.168.1.1)"
+                  className="scan-input"
+                  disabled={scanning}
+                />
+                <button
+                  className="execute-btn"
+                  onClick={handleStartScan}
+                  disabled={scanning}
+                >
+                  {scanning ? 'SCANNING...' : '▶ EXECUTE SCAN'}
+                </button>
+              </div>
+              {error && <div className="error-msg">{error}</div>}
             </div>
 
-            {/* Target Input */}
-            <div className="form-group">
-              <label htmlFor="target-input">
-                {targetType === 'Domain/IP' ? 'Domain or IP' : 'Username'}
-              </label>
-              <input
-                id="target-input"
-                type="text"
-                value={target}
-                onChange={(e) => setTarget(e.target.value)}
-                placeholder={targetType === 'Domain/IP' ? 'example.com or 192.168.1.1' : 'john_doe'}
-                className="form-control"
-                disabled={scanning}
-              />
-            </div>
+            {/* TOOL SELECTION */}
+            <div className="module-config">
+              <div className="module-header">
+                <div>
+                  <h2>Module Configuration</h2>
+                  <p className="module-subtitle">Select the reconnaissance vectors for this operation.</p>
+                </div>
+                <div className="module-actions">
+                  <button className="action-btn select-all" onClick={handleSelectAll}>Select ALL</button>
+                  <button className="action-btn clear-btn" onClick={handleClearAll}>Clear</button>
+                </div>
+              </div>
 
-            {/* Tool Selection */}
-            <div className="form-group">
-              <label>Select Tools ({selectedTools.length}/{availableTools.length})</label>
               <div className="tools-grid">
                 {availableTools.map((tool) => (
-                  <label key={tool} className="tool-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={selectedTools.includes(tool)}
-                      onChange={() => handleToolToggle(tool)}
-                      disabled={scanning}
-                    />
-                    <span>{tool}</span>
-                  </label>
+                  <div
+                    key={tool}
+                    className={`tool-card ${selectedTools.includes(tool) ? 'selected' : ''}`}
+                    onClick={() => handleToolToggle(tool)}
+                  >
+                    <div className="tool-card-header">
+                      <span className="tool-icon">{TOOL_ICONS[tool] || '⊕'}</span>
+                      <span className={`tool-tag ${TOOL_TAGS[tool]?.toLowerCase()}`}>
+                        {TOOL_TAGS[tool]}
+                      </span>
+                      <span className={`status-dot ${selectedTools.includes(tool) ? 'active' : ''}`} />
+                    </div>
+                    <h3 className="tool-card-name">{tool}</h3>
+                    <p className="tool-card-desc">{TOOL_DESCRIPTIONS[tool] || 'Reconnaissance tool.'}</p>
+                  </div>
                 ))}
               </div>
             </div>
 
-            {/* Error Message */}
-            {error && <div className="error-message">{error}</div>}
+            {/* SCAN RESULTS */}
+            {scanStatus && (
+              <div className="results-panel">
+                <h2>Scan Results</h2>
+                <div className="progress-section">
+                  <div className="progress-header">
+                    <span>Progress</span>
+                    <span className="progress-percent">{scanStatus.progress}%</span>
+                  </div>
+                  <div className="progress-bar">
+                    <div className="progress-fill" style={{ width: `${scanStatus.progress}%` }} />
+                  </div>
+                  <p className="status-text">Status: <strong>{scanStatus.status}</strong></p>
+                </div>
 
-            {/* Start Button */}
-            <button
-              onClick={handleStartScan}
-              disabled={scanning}
-              className="btn btn-primary btn-large"
-            >
-              {scanning ? 'Scanning...' : 'Start Scan'}
-            </button>
+                <div className="results-section">
+                  {Object.entries(scanStatus.results).map(([tool, result]) => (
+                    <details key={tool} className="result-item">
+                      <summary className="result-title">
+                        <span className="tool-name">{tool}</span>
+                        <span className={`result-status ${result?.returncode === 0 ? 'success' : 'warning'}`}>
+                          {result?.returncode === 0 ? '✓' : '⚠'}
+                        </span>
+                      </summary>
+                      <div className="result-content">
+                        {result?.stdout && (
+                          <pre className="result-output">{result.stdout}</pre>
+                        )}
+                        {result?.error && <p className="result-error">Error: {result.error}</p>}
+                        {result?.stderr && result?.returncode !== 0 && (
+                          <p className="result-error">{result.stderr}</p>
+                        )}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+
+                {scanStatus.status === 'completed' && (
+                  <div className="export-section">
+                    <button onClick={() => handleExport('markdown')} className="btn btn-secondary">
+                      Download Markdown
+                    </button>
+                    <button onClick={() => handleExport('json')} className="btn btn-secondary">
+                      Download JSON
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Results Panel */}
-          {scanStatus && (
-            <div className="panel results-panel">
-              <h2>Scan Results</h2>
-
-              {/* Progress Bar */}
-              <div className="progress-section">
-                <div className="progress-header">
-                  <span>Progress</span>
-                  <span className="progress-percent">{scanStatus.progress}%</span>
-                </div>
-                <div className="progress-bar">
-                  <div
-                    className="progress-fill"
-                    style={{ width: `${scanStatus.progress}%` }}
-                  />
-                </div>
-                <p className="status-text">Status: <strong>{scanStatus.status}</strong></p>
+          {/* RIGHT SIDEBAR */}
+          <aside className="right-sidebar">
+            <div className="activity-panel">
+              <div className="activity-header">
+                <h2>Recent Activity</h2>
+                <button className="dots-menu">•••</button>
               </div>
 
-              {/* Results Tabs */}
-              <div className="results-section">
-                {Object.entries(scanStatus.results).map(([tool, result]) => (
-                  <details key={tool} className="result-item">
-                    <summary className="result-title">
-                      <span className="tool-name">{tool}</span>
-                      <span className={`result-status ${result?.returncode === 0 ? 'success' : 'warning'}`}>
-                        {result?.returncode === 0 ? '✓' : '⚠'}
-                      </span>
-                    </summary>
-                    <div className="result-content">
-                      {result?.stdout && (
-                        <pre className="result-output">{result.stdout}</pre>
-                      )}
-                      {result?.error && <p className="result-error">Error: {result.error}</p>}
-                      {result?.stderr && result?.returncode !== 0 && (
-                        <p className="result-error">{result.stderr}</p>
-                      )}
+              <div className="activity-list">
+                {recentActivity.length === 0 ? (
+                  <div className="activity-empty">No recent scans</div>
+                ) : (
+                  recentActivity.map((activity, i) => (
+                    <div key={i} className="activity-item">
+                      <div className={`activity-status ${activity.status}`}>
+                        {activity.status === 'completed' ? '✓' : activity.status === 'failed' ? '✕' : '◎'}
+                      </div>
+                      <div className="activity-info">
+                        <span className="activity-target">{activity.target}</span>
+                        <span className="activity-time">{activity.time}</span>
+                        <span className="activity-desc">
+                          {activity.status === 'completed'
+                            ? 'Scan completed successfully.'
+                            : activity.status === 'failed'
+                            ? 'Operation failed.'
+                            : `In Progress — ${activity.progress}% complete`}
+                        </span>
+                        <div className="activity-tags">
+                          {activity.tools.slice(0, 3).map((t) => (
+                            <span key={t} className="activity-tag">{t}</span>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </details>
-                ))}
+                  ))
+                )}
               </div>
-
-              {/* Export Buttons */}
-              {scanStatus.status === 'completed' && (
-                <div className="export-section">
-                  <p>Export results:</p>
-                  <button onClick={() => handleExport('markdown')} className="btn btn-secondary">
-                    Download Markdown
-                  </button>
-                  <button onClick={() => handleExport('json')} className="btn btn-secondary">
-                    Download JSON
-                  </button>
-                </div>
-              )}
             </div>
-          )}
-        </div>
-      </main>
 
-      <footer className="app-footer">
-        <p>Recon_set © 2026 | All tools run server-side.</p>
-      </footer>
+            <div className="ascii-logo">
+              <pre>{ASCII_LOGO}</pre>
+            </div>
+
+            <button className="view-logs-btn">VIEW FULL LOGS</button>
+          </aside>
+        </div>
+      </div>
     </div>
   );
 }
