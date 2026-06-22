@@ -75,13 +75,7 @@ const TOOL_TAGS = {
   'Maigret': 'OSINT',
 };
 
-const ASCII_LOGO = `
-    ██████╗ ███████╗██████╗ ██████╗ ███████╗██████╗ 
-    ██╔══██╗██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗
-    ██████╔╝█████╗  ██║  ██║██████╔╝█████╗  ██████╔╝
-    ██╔══██╗██╔══╝  ██║  ██║██╔══██╗██╔══╝  ██╔══██╗
-    ██║  ██║███████╗██████╔╝██████╔╝███████╗██║  ██║
-    ╚═╝  ╚═╝╚══════╝╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝`;
+
 
 export default function ReconApp() {
   const [targetType, setTargetType] = useState('Domain/IP');
@@ -433,14 +427,28 @@ export default function ReconApp() {
               </div>
             </div>
 
-            <div className="ascii-logo">
-              <pre>{ASCII_LOGO}</pre>
-            </div>
 
-            <button className="view-logs-btn">VIEW FULL LOGS</button>
           </aside>
         </div>
       </div>
+
+      {/* BOTTOM NAV (mobile) */}
+      <nav className="bottom-nav">
+        {['Dashboard', 'Scans', 'History'].map((item) => (
+          <button
+            key={item}
+            className={`bottom-nav-item ${activeNav === item ? 'active' : ''}`}
+            onClick={() => setActiveNav(item)}
+          >
+            <span className="bottom-nav-icon">
+              {item === 'Dashboard' && '⊞'}
+              {item === 'Scans' && '◎'}
+              {item === 'History' && '↻'}
+            </span>
+            {item}
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }
