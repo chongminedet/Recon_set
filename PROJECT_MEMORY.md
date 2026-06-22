@@ -18,7 +18,7 @@
 
 ## Features Done
 - 21 OSINT/recon tools: WHOIS, DNS, DNS (Full), Reverse DNS, TLS Certificate, HTTP Headers, Nmap Basic, Nmap Aggressive, DNS Zone Transfer, Sherlock, Subfinder, theHarvester, WhatWeb, WAFW00F, Nikto, Gobuster Dir, Gobuster DNS, FFUF, HTTPx, Masscan, Maigret
-- 3 target types: Domain/IP, Username, Email
+- 3 target types: Domain/IP, Username, Email — each shows only their respective tools
 - 6 switchable themes (Phantom, Midnight, Ocean, Synthwave, Crimson, Light) via CSS data-theme
 - Theme persistence via localStorage (recon-settings)
 - Settings panel with: theme picker, scan timeout, export format, auto-select tools, show tool desc, compact mode
@@ -26,6 +26,10 @@
 - Sidebar with diagonal scanlines, Recon_Set. brand, skull SVG decoration
 - Scan History page, Active Scans page
 - Mobile responsive with bottom nav
+- CAPTCHA verification before each scan (math challenge)
+- JetBrains Mono font across all themes
+- Results dropdown with chevron icon and "tap to expand" hint
+- New Scan button fully resets all state
 
 ## Known Issues (as of last session)
 - **TLS Certificate tool** — may be failing or returning empty
