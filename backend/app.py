@@ -92,7 +92,7 @@ scan_manager = ScanManager()
 
 def run_command(cmd, timeout=300):
     """Execute a system command safely with retry logic"""
-    max_retries = 3
+    max_retries = 2
     for attempt in range(max_retries):
         try:
             result = subprocess.run(
@@ -102,24 +102,31 @@ def run_command(cmd, timeout=300):
                 text=True,
                 timeout=timeout
             )
+            stdout = result.stdout[:10000] if result.stdout else ""
+            stderr = result.stderr[:2000] if result.stderr else ""
+            # If we got stdout, return it even if returncode is non-zero
+            if stdout.strip():
+                return {
+                    "stdout": stdout,
+                    "stderr": stderr,
+                    "returncode": result.returncode
+                }
+            # No stdout — return whatever we have
             return {
-                "stdout": result.stdout[:10000],  # Increased to 10000 chars for nmap
-                "stderr": result.stderr[:2000],
+                "stdout": stdout,
+                "stderr": stderr,
                 "returncode": result.returncode
             }
         except subprocess.TimeoutExpired:
             if attempt < max_retries - 1:
-                logger.warning(f"Command timeout (attempt {attempt+1}/{max_retries}), retrying with longer timeout...")
-                timeout += 300  # Add 5 more minutes
+                logger.warning(f"Command timeout (attempt {attempt+1}/{max_retries}), retrying...")
+                timeout = int(timeout * 1.5)  # Add 50% more time
                 continue
             logger.error(f"Command timed out after {max_retries} attempts")
-            return {"error": f"Command timed out after {timeout}s", "timeout": True}
+            return {"error": f"Command timed out after {timeout}s", "timeout": True, "stdout": "", "stderr": "", "returncode": -1}
         except Exception as e:
             logger.error(f"Command execution failed: {str(e)}")
-            if attempt < max_retries - 1:
-                logger.warning(f"Retrying (attempt {attempt+1}/{max_retries})...")
-                continue
-            return {"error": str(e), "failed": True}
+            return {"error": str(e), "failed": True, "stdout": "", "stderr": "", "returncode": -1}
 
 def validate_target(target, target_type):
     """Validate target input to prevent command injection"""
@@ -140,14 +147,14 @@ def execute_tool(tool, target):
     """Execute a specific reconnaissance tool"""
     commands = {
         "WHOIS": f"whois {target}",
-        "DNS": f"dig {target} +short",
-        "DNS (Full)": f"dig {target} ANY",
-        "Reverse DNS": f"dig -x {target}",
-        "TLS Certificate": f"openssl s_client -connect {target}:443 -servername {target} 2>/dev/null | openssl x509 -noout -text",
-        "HTTP Headers": f"curl -I https://{target} 2>&1",
-        "Nmap Basic": f"nmap -sV -p 1-1000 --max-rate 100 {target}",
-        "Nmap Aggressive": f"nmap -sV -p 1-1000 --script vuln --max-rate 50 {target}",
-        "DNS Zone Transfer": f"dig @{target} axfr",
+        "DNS": f"dig {target} +short A && dig {target} +short MX && dig {target} +short NS && dig {target} +short TXT",
+        "DNS (Full)": f"dig {target} ANY +noall +answer || dig {target} A +noall +answer && dig {target} MX +noall +answer && dig {target} NS +noall +answer && dig {target} TXT +noall +answer",
+        "Reverse DNS": f"dig -x {target} +short || echo 'No PTR record found for {target}'",
+        "TLS Certificate": f"echo | timeout 10 openssl s_client -connect {target}:443 -servername {target} 2>/dev/null | openssl x509 -noout -text 2>/dev/null || echo 'Could not retrieve TLS certificate from {target}:443 — target may not have HTTPS'",
+        "HTTP Headers": f"curl -I -sS --max-time 10 https://{target} 2>&1 || curl -I -sS --max-time 10 http://{target} 2>&1",
+        "Nmap Basic": f"nmap -sV -Pn -p 1-1000 --max-rate 100 --open {target}",
+        "Nmap Aggressive": f"nmap -sV -Pn -p 1-1000 --script default,vuln --max-rate 200 --open --host-timeout 300s {target}",
+        "DNS Zone Transfer": f"echo 'Attempting zone transfer from {target}...' && dig @{target} axfr +noall +answer 2>&1 || echo 'Zone transfer failed — server does not allow AXFR (this is expected for most servers)'",
         "Sherlock": f"sherlock {target} --timeout 1 2>/dev/null",
         "Subfinder": f"subfinder -d {target} -silent",
         "theHarvester": f"theHarvester -d {target} -b all",
@@ -168,8 +175,8 @@ def execute_tool(tool, target):
     logger.info(f"Executing {tool} against {target}")
     
     timeout_map = {
-        "Nmap Aggressive": 600,
-        "Nmap Basic": 300,
+        "Nmap Aggressive": 900,
+        "Nmap Basic": 600,
         "Nikto": 300,
         "Gobuster Dir": 300,
         "Gobuster DNS": 300,
@@ -178,6 +185,12 @@ def execute_tool(tool, target):
         "theHarvester": 300,
         "Maigret": 300,
         "HTTPx": 180,
+        "TLS Certificate": 60,
+        "DNS": 60,
+        "DNS (Full)": 60,
+        "DNS Zone Transfer": 120,
+        "WHOIS": 60,
+        "Reverse DNS": 60,
     }
     timeout = timeout_map.get(tool, 120)
     

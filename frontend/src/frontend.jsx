@@ -287,6 +287,17 @@ export default function ReconApp() {
     }
   };
 
+  const handleNewScan = () => {
+    setTarget('');
+    setTargetType('Domain/IP');
+    setSelectedTools([]);
+    setScanId(null);
+    setScanStatus(null);
+    setScanning(false);
+    setError('');
+    setActiveNav('Dashboard');
+  };
+
   const renderDashboard = () => (
     <>
       <div className="scan-input-card">
@@ -370,18 +381,32 @@ export default function ReconApp() {
             <p className="status-text">Status: <strong>{scanStatus.status}</strong></p>
           </div>
           <div className="results-section">
+            <p className="results-hint">
+              {scanStatus.status === 'completed'
+                ? 'Tap any tool below to expand results'
+                : 'Waiting for results...'}
+            </p>
             {Object.entries(scanStatus.results).map(([tool, result]) => (
               <details key={tool} className="result-item">
                 <summary className="result-title">
-                  <span>{tool}</span>
+                  <span className="result-title-left">
+                    <span className="result-chevron">▸</span>
+                    <span>{tool}</span>
+                  </span>
                   <span className={`result-status ${result?.returncode === 0 ? 'success' : 'warning'}`}>
-                    {result?.returncode === 0 ? '✓' : '⚠'}
+                    {result?.returncode === 0 ? '✓ Complete' : result?.error ? '✕ Error' : '⚠ Check'}
                   </span>
                 </summary>
                 <div className="result-content">
-                  {result?.stdout && <pre className="result-output">{result.stdout}</pre>}
+                  {result?.stdout && result.stdout.trim() ? (
+                    <pre className="result-output">{result.stdout}</pre>
+                  ) : (
+                    <p className="result-empty">No output returned from this tool.</p>
+                  )}
                   {result?.error && <p className="result-error">Error: {result.error}</p>}
-                  {result?.stderr && result?.returncode !== 0 && <p className="result-error">{result.stderr}</p>}
+                  {result?.stderr && result?.returncode !== 0 && !result?.error && (
+                    <p className="result-error">{result.stderr}</p>
+                  )}
                 </div>
               </details>
             ))}
@@ -471,7 +496,7 @@ export default function ReconApp() {
           ))}
         </nav>
 
-        <button className="new-scan-btn" onClick={() => setActiveNav('Dashboard')}>
+        <button className="new-scan-btn" onClick={handleNewScan}>
           + NEW SCAN
         </button>
 
