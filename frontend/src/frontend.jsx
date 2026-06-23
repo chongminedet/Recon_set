@@ -402,6 +402,7 @@ export default function ReconApp() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showCaptcha, setShowCaptcha] = useState(false);
   const [captchaVerified, setCaptchaVerified] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', settings.theme);
@@ -755,16 +756,27 @@ export default function ReconApp() {
         <header className="topbar">
           <h1 className="topbar-title">Recon_Set._.</h1>
           <div className="topbar-right">
-            <div className="search-bar">
-              <Icon name="search" size={16} className="search-icon" />
+            <div className={`search-bar ${searchExpanded ? 'expanded' : ''}`}>
+              <span className="search-icon" onClick={() => {
+                if (!searchExpanded) {
+                  setSearchExpanded(true);
+                  setTimeout(() => document.querySelector('.search-bar input')?.focus(), 300);
+                } else {
+                  setSearchExpanded(false);
+                  setSearchQuery('');
+                }
+              }}>
+                <Icon name="search" size={16} />
+              </span>
               <input
                 type="text"
                 placeholder="Search scans, targets, tools..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onBlur={() => { if (!searchQuery) setSearchExpanded(false); }}
               />
               {searchQuery && (
-                <button className="search-clear" onClick={() => setSearchQuery('')}>
+                <button className="search-clear" onClick={() => { setSearchQuery(''); setSearchExpanded(false); }}>
                   <Icon name="x" size={14} />
                 </button>
               )}
