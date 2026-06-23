@@ -423,13 +423,7 @@ def get_tools():
             "Maigret"
         ],
         "Email": [
-            "theHarvester",
-            "Subfinder",
-            "Sherlock",
-            "Maigret",
-            "DNS",
-            "DNS (Full)",
-            "WHOIS"
+            "theHarvester"
         ]
     }
     
