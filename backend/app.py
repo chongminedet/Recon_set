@@ -235,7 +235,8 @@ def execute_tool(tool, target):
         "DNS Zone Transfer": f"echo 'Attempting zone transfer from {target}...' && dig @{target} axfr +noall +answer 2>&1 || echo 'Zone transfer failed — server does not allow AXFR (this is expected for most servers)'",
         "Sherlock": f"sherlock {target} --timeout 1 2>/dev/null",
         "Subfinder": f"subfinder -d {target} -silent",
-        "theHarvester": f"cd /opt/theHarvester && python -m theHarvester -d {target} -b all 2>&1",
+        "theHarvester": f"cd /opt/theHarvester && python -m theHarvester -d {target} -b bing,duckduckgo,crtsh 2>&1",
+        "Holehe": f"holehe {target}",
         "WhatWeb": f"whatweb {target} -a 3 --color=never",
         "WAFW00F": f"wafw00f {target}",
         "Nikto": f"nikto -h {target} -maxtime 180s",
@@ -261,6 +262,7 @@ def execute_tool(tool, target):
         "FFUF": 300,
         "Masscan": 300,
         "theHarvester": 300,
+        "Holehe": 120,
         "Maigret": 300,
         "HTTPx": 180,
         "TLS Certificate": 60,
@@ -423,7 +425,8 @@ def get_tools():
             "Maigret"
         ],
         "Email": [
-            "theHarvester"
+            "theHarvester",
+            "Holehe"
         ]
     }
     
@@ -450,7 +453,8 @@ def get_tools():
             "FFUF": "Fast web fuzzer for directory and parameter discovery",
             "HTTPx": "HTTP probing with title, tech detection, status codes",
             "Masscan": "High-speed port scanner (top 10000 ports)",
-            "Maigret": "Advanced username OSINT across 3000+ sites"
+            "Maigret": "Advanced username OSINT across 3000+ sites",
+            "Holehe": "Check if email is registered on 100+ websites"
         }
     })
 

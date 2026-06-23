@@ -29,7 +29,7 @@ const TOOL_ICONS = {
   'Nmap Aggressive': '⚠', 'DNS Zone Transfer': '⊕', 'Sherlock': '⊕',
   'Subfinder': '◎', 'theHarvester': '⚡', 'WhatWeb': '◈', 'WAFW00F': '◆',
   'Nikto': '◇', 'Gobuster Dir': '▣', 'Gobuster DNS': '▤', 'FFUF': '▥',
-  'HTTPx': '▦', 'Masscan': '▧', 'Maigret': '⊕',
+  'HTTPx': '▦', 'Masscan': '▧', 'Maigret': '⊕', 'Holehe': '⊙',
 };
 
 // SVG Icon Components
@@ -189,6 +189,7 @@ const TOOL_DESCRIPTIONS = {
   'HTTPx': 'HTTP probing with title, tech detection, and status codes.',
   'Masscan': 'High-speed port scanner covering top 10000 ports.',
   'Maigret': 'Advanced username OSINT across 3000+ sites with node analysis.',
+  'Holehe': 'Check if email is registered on 100+ websites.',
 };
 
 const TOOL_TAGS = {
@@ -197,7 +198,7 @@ const TOOL_TAGS = {
   'Nmap Aggressive': 'NMAP-AGGRO', 'DNS Zone Transfer': 'DNS', 'Sherlock': 'OSINT',
   'Subfinder': 'DNS', 'theHarvester': 'OSINT', 'WhatWeb': 'HTTP', 'WAFW00F': 'HTTP',
   'Nikto': 'HTTP', 'Gobuster Dir': 'HTTP', 'Gobuster DNS': 'DNS', 'FFUF': 'HTTP',
-  'HTTPx': 'HTTP', 'Masscan': 'NMAP', 'Maigret': 'OSINT',
+  'HTTPx': 'HTTP', 'Masscan': 'NMAP', 'Maigret': 'OSINT', 'Holehe': 'OSINT',
 };
 
 const SkullSVG = () => (

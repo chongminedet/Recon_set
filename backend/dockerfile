@@ -61,6 +61,7 @@ RUN git clone --depth 1 https://github.com/laramies/theHarvester.git /opt/theHar
 RUN pip install --no-cache-dir sherlock-project
 RUN pip install --no-cache-dir wafw00f
 RUN pip install --no-cache-dir maigret
+RUN pip install --no-cache-dir holehe
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
