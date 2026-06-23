@@ -162,8 +162,8 @@
    BASE RESET
    ===================================================================== */
 
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C7 2 3 6 3 11v5l-1 2 3-1 2 3c1 2 3 3 5 3s4-1 5-3l2-3 3 1-1-2v-5c0-5-4-9-9-9z' fill='%23808898'/%3E%3Ccircle cx='9' cy='10' r='1.5' fill='%230a0f1a'/%3E%3Ccircle cx='15' cy='10' r='1.5' fill='%230a0f1a'/%3E%3C/svg%3E") 12 12, auto; }
-html, body, #root { height: 100%; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C7 2 3 6 3 11v5l-1 2 3-1 2 3c1 2 3 3 5 3s4-1 5-3l2-3 3 1-1-2v-5c0-5-4-9-9-9z' fill='%23808898'/%3E%3Ccircle cx='9' cy='10' r='1.5' fill='%230a0f1a'/%3E%3Ccircle cx='15' cy='10' r='1.5' fill='%230a0f1a'/%3E%3C/svg%3E") 12 12, auto; }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C7 2 3 6 3 11v5l-1 2 3-1 2 3c1 2 3 3 5 3s4-1 5-3l2-3 3 1-1-2v-5c0-5-4-9-9-9z' fill='%23808898'/%3E%3Ccircle cx='9' cy='10' r='1.5' fill='%23ffffff'/%3E%3Ccircle cx='15' cy='10' r='1.5' fill='%23ffffff'/%3E%3C/svg%3E") 12 12, auto; }
+html, body, #root { height: 100%; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C7 2 3 6 3 11v5l-1 2 3-1 2 3c1 2 3 3 5 3s4-1 5-3l2-3 3 1-1-2v-5c0-5-4-9-9-9z' fill='%23808898'/%3E%3Ccircle cx='9' cy='10' r='1.5' fill='%23ffffff'/%3E%3Ccircle cx='15' cy='10' r='1.5' fill='%23ffffff'/%3E%3C/svg%3E") 12 12, auto; }
 body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-body); font-size: 13px; line-height: 1.5; overflow: hidden; -webkit-tap-highlight-color: transparent; transition: background 0.3s, color 0.3s; }
 .recon-app { display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
 

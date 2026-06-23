@@ -698,15 +698,6 @@ export default function ReconApp() {
                 </button>
               )}
             </div>
-            <div className="topbar-icons">
-              <button
-                className="icon-btn"
-                onClick={() => setActiveNav('Settings')}
-                title="Settings"
-              >
-                <Icon name="settings" size={18} />
-              </button>
-            </div>
           </div>
         </header>
 
