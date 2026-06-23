@@ -235,7 +235,7 @@ def execute_tool(tool, target):
         "DNS Zone Transfer": f"echo 'Attempting zone transfer from {target}...' && dig @{target} axfr +noall +answer 2>&1 || echo 'Zone transfer failed — server does not allow AXFR (this is expected for most servers)'",
         "Sherlock": f"sherlock {target} --timeout 1 2>/dev/null",
         "Subfinder": f"subfinder -d {target} -silent",
-        "theHarvester": f"cd /opt/theHarvester && python -m theHarvester -d {target} -b all",
+        "theHarvester": f"cd /opt/theHarvester && python -m theHarvester -d {target} -b all 2>&1",
         "WhatWeb": f"whatweb {target} -a 3 --color=never",
         "WAFW00F": f"wafw00f {target}",
         "Nikto": f"nikto -h {target} -maxtime 180s",
