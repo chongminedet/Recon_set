@@ -1040,7 +1040,7 @@ details[open] .result-chevron { transform: rotate(90deg); }
 
 .ghost-mascot {
   animation: ghostFloat 3s ease-in-out infinite;
-  filter: drop-shadow(0 0 8px var(--accent-glow));
+  filter: drop-shadow(0 0 8px rgba(128, 136, 152, 0.4));
 }
 
 @keyframes ghostFloat {
@@ -1049,8 +1049,9 @@ details[open] .result-chevron { transform: rotate(90deg); }
 }
 
 .brand-ghost {
-  color: var(--accent);
+  color: #808898;
   flex-shrink: 0;
+  animation: ghostPulse 2s ease-in-out infinite;
 }
 
 /* =====================================================================
@@ -1141,10 +1142,6 @@ details[open] .result-chevron { transform: rotate(90deg); }
   to { opacity: 1; transform: translateX(0); }
 }
 
-/* Brand ghost pulse */
-.brand-ghost {
-  animation: ghostPulse 2s ease-in-out infinite;
-}
 @keyframes ghostPulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.6; }
