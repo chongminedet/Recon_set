@@ -317,6 +317,7 @@ export default function ReconApp() {
   const [activeNav, setActiveNav] = useState('Dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', settings.theme);
@@ -434,6 +435,7 @@ export default function ReconApp() {
     setScanning(false);
     setError('');
     setActiveNav('Dashboard');
+    setSidebarOpen(false);
   };
 
   const renderDashboard = () => (
@@ -444,8 +446,7 @@ export default function ReconApp() {
           <select
             value={targetType}
             onChange={(e) => setTargetType(e.target.value)}
-            className="scan-input"
-            style={{ flex: '0 0 160px' }}
+            className="scan-input scan-type-select"
             disabled={scanning}
           >
             <option value="Domain/IP">Domain / IP</option>
@@ -612,8 +613,14 @@ export default function ReconApp() {
 
   return (
     <div className="recon-app">
+      {/* SIDEBAR OVERLAY (mobile) */}
+      <div
+        className={`sidebar-overlay ${sidebarOpen ? 'visible' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+
       {/* SIDEBAR */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-brand">
           <Icon name="ghost" size={24} className="brand-ghost" />
           Recon_Set.
@@ -629,7 +636,7 @@ export default function ReconApp() {
             <button
               key={item.name}
               className={`nav-item ${activeNav === item.name ? 'active' : ''}`}
-              onClick={() => setActiveNav(item.name)}
+              onClick={() => { setActiveNav(item.name); setSidebarOpen(false); }}
             >
               <span className="nav-icon">
                 <Icon name={item.icon} size={18} />
@@ -655,7 +662,16 @@ export default function ReconApp() {
       {/* MAIN AREA */}
       <div className="main-area">
         <header className="topbar">
-          <h1 className="topbar-title">Recon_Set._.</h1>
+          <div className="topbar-left">
+            <button
+              className="hamburger-btn"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label="Toggle menu"
+            >
+              {sidebarOpen ? '✕' : '☰'}
+            </button>
+            <h1 className="topbar-title">Recon_Set._.</h1>
+          </div>
           <div className="topbar-right">
             <div className={`search-bar ${searchExpanded ? 'expanded' : ''}`}>
               <span className="search-icon" onClick={() => {
@@ -748,8 +764,8 @@ export default function ReconApp() {
       <nav className="bottom-nav">
         {[
           { name: 'Dashboard', icon: 'dashboard' },
-          { name: 'Scans', icon: 'radar' },
-          { name: 'History', icon: 'history' },
+          { name: 'Active Scans', icon: 'radar', label: 'Scans' },
+          { name: 'Scan History', icon: 'history', label: 'History' },
         ].map((item) => (
           <button
             key={item.name}
@@ -759,7 +775,7 @@ export default function ReconApp() {
             <span className="bottom-nav-icon">
               <Icon name={item.icon} size={20} />
             </span>
-            {item.name}
+            {item.label || item.name}
           </button>
         ))}
       </nav>
