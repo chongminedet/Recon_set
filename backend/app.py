@@ -425,10 +425,10 @@ def get_tools():
         "Email": [
             "theHarvester",
             "Subfinder",
-            "WhatWeb",
-            "WAFW00F",
-            "Nikto",
+            "Sherlock",
+            "Maigret",
             "DNS",
+            "DNS (Full)",
             "WHOIS"
         ]
     }
@@ -565,8 +565,26 @@ def run_scan(scan_id, target, tools):
         scan = scan_manager.get_scan(scan_id)
         scan["status"] = "running"
         
+        target_type = scan.get("target_type", "Domain/IP")
+        
+        # Extract domain and username from email for tools that need them
+        domain_target = target
+        username_target = target
+        if target_type == "Email" and "@" in target:
+            parts = target.split("@")
+            username_target = parts[0]
+            domain_target = parts[1]
+        
+        # Tools that need the username part of an email
+        username_tools = {"Sherlock", "Maigret"}
+        
         for i, tool in enumerate(tools):
-            result = execute_tool(tool, target)
+            if target_type == "Email" and tool in username_tools:
+                result = execute_tool(tool, username_target)
+            elif target_type == "Email":
+                result = execute_tool(tool, domain_target)
+            else:
+                result = execute_tool(tool, target)
             scan_manager.update_progress(scan_id, tool, result)
             logger.info(f"[{scan_id}] Completed {tool} ({i+1}/{len(tools)})")
         
