@@ -575,9 +575,13 @@ def run_scan(scan_id, target, tools):
         
         # Tools that need the username part of an email
         username_tools = {"Sherlock", "Maigret"}
+        # Tools that need the full email address
+        email_tools = {"Holehe"}
         
         for i, tool in enumerate(tools):
-            if target_type == "Email" and tool in username_tools:
+            if target_type == "Email" and tool in email_tools:
+                result = execute_tool(tool, target)
+            elif target_type == "Email" and tool in username_tools:
                 result = execute_tool(tool, username_target)
             elif target_type == "Email":
                 result = execute_tool(tool, domain_target)
