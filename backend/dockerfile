@@ -55,8 +55,7 @@ RUN wget -q https://github.com/OJ/gobuster/releases/download/v3.8.2/gobuster_Lin
 # Install theHarvester from source (pip package is a dummy)
 RUN git clone --depth 1 https://github.com/laramies/theHarvester.git /opt/theHarvester \
     && cd /opt/theHarvester \
-    && pip install --no-cache-dir -e . \
-    && ln -s /opt/theHarvester/bin/theHarvester /usr/local/bin/theHarvester
+    && pip install --no-cache-dir .
 
 # Install Python OSINT tools
 RUN pip install --no-cache-dir sherlock-project
