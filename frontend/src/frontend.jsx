@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './frontend.css';
+import { useCursorTheme } from './hooks/useCursorTheme';
+import { ThemeSwitcher } from './components/ThemeSwitcher';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000/api';
 
@@ -209,7 +211,7 @@ const SkullSVG = () => (
   </svg>
 );
 
-function SettingsPanel({ settings, onUpdate }) {
+function SettingsPanel({ settings, onUpdate, updateCursorTheme, currentTheme }) {
   return (
     <div className="settings-panel">
       <h2 className="settings-title">Settings</h2>
@@ -219,18 +221,13 @@ function SettingsPanel({ settings, onUpdate }) {
         <h3 className="settings-section-title">Appearance</h3>
         <div className="settings-row">
           <label className="settings-label">Theme</label>
-          <div className="settings-theme-grid">
-            {THEMES.map((t) => (
-              <button
-                key={t.id}
-                className={`settings-theme-card ${settings.theme === t.id ? 'active' : ''}`}
-                onClick={() => onUpdate({ ...settings, theme: t.id })}
-              >
-                <span className="settings-theme-swatch" style={{ background: t.color }} />
-                <span className="settings-theme-name">{t.name}</span>
-              </button>
-            ))}
-          </div>
+          <ThemeSwitcher
+            currentTheme={currentTheme}
+            onThemeChange={(theme) => {
+              onUpdate({ ...settings, theme });
+              if (updateCursorTheme) updateCursorTheme(theme);
+            }}
+          />
         </div>
         <div className="settings-row">
           <label className="settings-label">Compact Mode</label>
@@ -319,8 +316,11 @@ export default function ReconApp() {
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const { currentTheme, updateCursorTheme } = useCursorTheme();
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', settings.theme);
+    updateCursorTheme(settings.theme);
     localStorage.setItem('recon-settings', JSON.stringify(settings));
   }, [settings]);
 
@@ -606,7 +606,7 @@ export default function ReconApp() {
     switch (activeNav) {
       case 'Active Scans': return renderActiveScans();
       case 'Scan History': return renderScanHistory();
-      case 'Settings': return <SettingsPanel settings={settings} onUpdate={setSettings} />;
+      case 'Settings': return <SettingsPanel settings={settings} onUpdate={setSettings} updateCursorTheme={updateCursorTheme} currentTheme={currentTheme} />;
       default: return renderDashboard();
     }
   };
