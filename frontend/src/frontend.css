@@ -164,8 +164,8 @@
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 html, body, #root { height: 100%; }
-body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-body); font-size: 13px; line-height: 1.5; overflow: hidden; -webkit-tap-highlight-color: transparent; transition: background 0.3s, color 0.3s; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32'%3E%3Cpath d='M16 2C9.37 2 4 7.37 4 14v4c0 2.95-1.49 5.51-3.76 7.03.12.91.45 1.75.97 2.47C2.45 29.57 3.85 31 5.67 31c1.23 0 2.33-.5 3.13-1.3C10 30.04 12.88 31 16 31s6-.96 7.2-1.3c.8.8 1.9 1.3 3.13 1.3 1.82 0 3.22-1.43 3.76-3.49.52-.72.85-1.56.97-2.47C28.76 23.51 27.28 20.95 27.28 18v-4C27.28 7.37 21.91 2 16 2z' fill='%23808898'/%3E%3Ccircle cx='12' cy='13' r='2.5' fill='%230a0f1a'/%3E%3Ccircle cx='20' cy='13' r='2.5' fill='%230a0f1a'/%3E%3Cpath d='M13.5 20v2.5M16 20v2.5M18.5 20v2.5' stroke='%230a0f1a' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M11 22h10' stroke='%230a0f1a' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E") 16 16, auto; }
-a, button, input, select, .tool-card, .nav-item, .activity-item, .settings-theme-card, .settings-toggle { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32'%3E%3Cpath d='M16 2C9.37 2 4 7.37 4 14v4c0 2.95-1.49 5.51-3.76 7.03.12.91.45 1.75.97 2.47C2.45 29.57 3.85 31 5.67 31c1.23 0 2.33-.5 3.13-1.3C10 30.04 12.88 31 16 31s6-.96 7.2-1.3c.8.8 1.9 1.3 3.13 1.3 1.82 0 3.22-1.43 3.76-3.49.52-.72.85-1.56.97-2.47C28.76 23.51 27.28 20.95 27.28 18v-4C27.28 7.37 21.91 2 16 2z' fill='%23808898'/%3E%3Ccircle cx='12' cy='13' r='2.5' fill='%230a0f1a'/%3E%3Ccircle cx='20' cy='13' r='2.5' fill='%230a0f1a'/%3E%3Cpath d='M13.5 20v2.5M16 20v2.5M18.5 20v2.5' stroke='%230a0f1a' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M11 22h10' stroke='%230a0f1a' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E") 16 16, pointer; }
+body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-body); font-size: 13px; line-height: 1.5; overflow: hidden; -webkit-tap-highlight-color: transparent; transition: background 0.3s, color 0.3s; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C7 2 3 6 3 11v5l-1 2 3-1 2 3c1 2 3 3 5 3s4-1 5-3l2-3 3 1-1-2v-5c0-5-4-9-9-9z' fill='%23808898'/%3E%3Ccircle cx='9' cy='10' r='1.5' fill='%230a0f1a'/%3E%3Ccircle cx='15' cy='10' r='1.5' fill='%230a0f1a'/%3E%3C/svg%3E") 12 12, auto; }
+a, button, input, select, .tool-card, .nav-item, .activity-item, .settings-theme-card, .settings-toggle { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C7 2 3 6 3 11v5l-1 2 3-1 2 3c1 2 3 3 5 3s4-1 5-3l2-3 3 1-1-2v-5c0-5-4-9-9-9z' fill='%23808898'/%3E%3Ccircle cx='9' cy='10' r='1.5' fill='%230a0f1a'/%3E%3Ccircle cx='15' cy='10' r='1.5' fill='%230a0f1a'/%3E%3C/svg%3E") 12 12, pointer; }
 
 .recon-app { display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
 
@@ -841,179 +841,6 @@ details[open] .result-chevron { transform: rotate(90deg); }
    CAPTCHA
    ===================================================================== */
 
-.captcha-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.captcha-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 28px 32px;
-  width: 380px;
-  max-width: 90vw;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  animation: slideUp 0.25s ease;
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.captcha-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.captcha-icon {
-  font-size: 28px;
-  color: var(--accent);
-}
-
-.captcha-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.captcha-subtitle {
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.captcha-question {
-  background: var(--bg-input);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  padding: 16px;
-  text-align: center;
-  margin-bottom: 16px;
-}
-
-.captcha-math {
-  font-family: var(--font-mono);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 2px;
-  margin-bottom: 6px;
-}
-
-.captcha-hint {
-  font-size: 10px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.captcha-input-row {
-  display: flex;
-  gap: 10px;
-}
-
-.captcha-input {
-  flex: 1;
-  padding: 12px 14px;
-  background: var(--bg-input);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  color: var(--text-primary);
-  font-size: 16px;
-  font-family: var(--font-mono);
-  text-align: center;
-  outline: none;
-  letter-spacing: 4px;
-  transition: border-color var(--transition);
-}
-
-.captcha-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-dim);
-}
-
-.captcha-input.error {
-  border-color: var(--red);
-  animation: shake 0.3s ease;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-6px); }
-  40% { transform: translateX(6px); }
-  60% { transform: translateX(-4px); }
-  80% { transform: translateX(4px); }
-}
-
-.captcha-verify-btn {
-  padding: 12px 20px;
-  background: var(--accent);
-  color: #000;
-  border: none;
-  border-radius: var(--radius);
-  font-size: 13px;
-  font-weight: 700;
-  font-family: var(--font-body);
-  cursor: pointer;
-  transition: all var(--transition);
-  white-space: nowrap;
-}
-
-.captcha-verify-btn:hover {
-  box-shadow: 0 0 20px var(--accent-glow);
-}
-
-.captcha-cancel-btn {
-  padding: 12px 16px;
-  background: transparent;
-  color: var(--text-muted);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  font-size: 12px;
-  font-family: var(--font-body);
-  cursor: pointer;
-  transition: all var(--transition);
-}
-
-.captcha-cancel-btn:hover {
-  border-color: var(--text-muted);
-  color: var(--text-primary);
-}
-
-.captcha-error {
-  margin-top: 10px;
-  padding: 8px 12px;
-  background: rgba(255, 71, 87, 0.1);
-  border-left: 3px solid var(--red);
-  color: var(--red);
-  border-radius: var(--radius);
-  font-size: 11px;
-  text-align: center;
-}
-
-.captcha-footer {
-  margin-top: 14px;
-  text-align: center;
-  font-size: 10px;
-  color: var(--text-muted);
-  letter-spacing: 0.5px;
-}
-
 /* =====================================================================
    ICONS - SVG icon alignment
    ===================================================================== */
@@ -1110,7 +937,6 @@ details[open] .result-chevron { transform: rotate(90deg); }
 /* Button press effect */
 .execute-btn:active:not(:disabled),
 .new-scan-btn:active,
-.captcha-verify-btn:active,
 .action-btn:active {
   transform: scale(0.97);
 }

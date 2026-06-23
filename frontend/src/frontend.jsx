@@ -209,90 +209,6 @@ const SkullSVG = () => (
   </svg>
 );
 
-function generateCaptcha() {
-  const ops = ['+', '-', '×'];
-  const op = ops[Math.floor(Math.random() * ops.length)];
-  let a, b, answer;
-  if (op === '+') {
-    a = Math.floor(Math.random() * 20) + 1;
-    b = Math.floor(Math.random() * 20) + 1;
-    answer = a + b;
-  } else if (op === '-') {
-    a = Math.floor(Math.random() * 20) + 10;
-    b = Math.floor(Math.random() * a) + 1;
-    answer = a - b;
-  } else {
-    a = Math.floor(Math.random() * 9) + 2;
-    b = Math.floor(Math.random() * 9) + 2;
-    answer = a * b;
-  }
-  return { question: `${a} ${op} ${b}`, answer };
-}
-
-function CaptchaChallenge({ onVerify, onCancel }) {
-  const [captcha, setCaptcha] = useState(() => generateCaptcha());
-  const [userAnswer, setUserAnswer] = useState('');
-  const [error, setError] = useState('');
-  const [shaking, setShaking] = useState(false);
-  const inputRef = useState(null);
-
-  useEffect(() => {
-    if (inputRef.current) inputRef.current.focus();
-  }, []);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (parseInt(userAnswer, 10) === captcha.answer) {
-      onVerify();
-    } else {
-      setError('Incorrect answer — try again');
-      setShaking(true);
-      setTimeout(() => setShaking(false), 300);
-      setCaptcha(generateCaptcha());
-      setUserAnswer('');
-    }
-  };
-
-  return (
-    <div className="captcha-overlay" onClick={onCancel}>
-      <div className="captcha-card" onClick={(e) => e.stopPropagation()}>
-        <div className="captcha-header">
-          <span className="captcha-icon"><Icon name="zap" size={28} /></span>
-          <div>
-            <div className="captcha-title">Verification Required</div>
-            <div className="captcha-subtitle">Solve to confirm this is not an automated request</div>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div className="captcha-question">
-            <div className="captcha-math">{captcha.question} = ?</div>
-            <div className="captcha-hint">Enter the result</div>
-          </div>
-
-          <div className="captcha-input-row">
-            <input
-              ref={inputRef}
-              type="number"
-              className={`captcha-input ${shaking ? 'error' : ''}`}
-              value={userAnswer}
-              onChange={(e) => { setUserAnswer(e.target.value); setError(''); }}
-              placeholder="?"
-              required
-            />
-            <button type="submit" className="captcha-verify-btn">VERIFY</button>
-            <button type="button" className="captcha-cancel-btn" onClick={onCancel}>Cancel</button>
-          </div>
-
-          {error && <div className="captcha-error">{error}</div>}
-        </form>
-
-        <div className="captcha-footer">This helps protect the service from abuse</div>
-      </div>
-    </div>
-  );
-}
-
 function SettingsPanel({ settings, onUpdate }) {
   return (
     <div className="settings-panel">
@@ -400,8 +316,6 @@ export default function ReconApp() {
   const [recentActivity, setRecentActivity] = useState([]);
   const [activeNav, setActiveNav] = useState('Dashboard');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showCaptcha, setShowCaptcha] = useState(false);
-  const [captchaVerified, setCaptchaVerified] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
 
   useEffect(() => {
@@ -478,10 +392,6 @@ export default function ReconApp() {
     setError('');
     if (!target.trim()) { setError('Please enter a target'); return; }
     if (selectedTools.length === 0) { setError('Please select at least one tool'); return; }
-    if (!captchaVerified) {
-      setShowCaptcha(true);
-      return;
-    }
     try {
       setScanning(true);
       const response = await fetch(`${API_BASE}/scan`, {
@@ -493,21 +403,12 @@ export default function ReconApp() {
       if (!response.ok) { setError(data.error || 'Failed to start scan'); setScanning(false); return; }
       setScanId(data.scan_id);
       setScanStatus({ id: data.scan_id, status: 'pending', progress: 0, results: {} });
-      setCaptchaVerified(false);
     } catch (err) {
       setError('Error starting scan: ' + err.message);
       setScanning(false);
     }
   };
 
-  const handleCaptchaVerify = () => {
-    setCaptchaVerified(true);
-    setShowCaptcha(false);
-  };
-
-  const handleCaptchaCancel = () => {
-    setShowCaptcha(false);
-  };
 
   const handleExport = async (format) => {
     if (!scanId) return;
@@ -862,13 +763,6 @@ export default function ReconApp() {
           </button>
         ))}
       </nav>
-
-      {showCaptcha && (
-        <CaptchaChallenge
-          onVerify={handleCaptchaVerify}
-          onCancel={handleCaptchaCancel}
-        />
-      )}
     </div>
   );
 }
