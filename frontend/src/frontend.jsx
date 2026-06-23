@@ -17,7 +17,6 @@ const THEMES = [
 
 const DEFAULT_SETTINGS = {
   theme: 'phantom',
-  scanTimeout: 300,
   exportFormat: 'markdown',
   autoSelectAll: false,
   showToolDesc: true,
@@ -242,17 +241,6 @@ function SettingsPanel({ settings, onUpdate, updateCursorTheme, currentTheme }) 
 
       <div className="settings-section">
         <h3 className="settings-section-title">Scan Defaults</h3>
-        <div className="settings-row">
-          <label className="settings-label">Scan Timeout (seconds)</label>
-          <input
-            type="number"
-            className="settings-input"
-            value={settings.scanTimeout}
-            min={30}
-            max={600}
-            onChange={(e) => onUpdate({ ...settings, scanTimeout: parseInt(e.target.value) || 300 })}
-          />
-        </div>
         <div className="settings-row">
           <label className="settings-label">Default Export Format</label>
           <select
