@@ -74,14 +74,20 @@ function buildCursorSvg(stroke, fill, eye, size, type) {
   return `url("data:image/svg+xml,${svg}") ${x} 4, ${fallback}`;
 }
 
+function buildFaviconCursor(type) {
+  const x = type === 'pointer' ? 10 : 8;
+  const fallback = type === 'pointer' ? 'pointer' : type === 'text' ? 'text' : 'auto';
+  return `url("/favicon.svg") ${x} 4, ${fallback}`;
+}
+
 function applyCursorTheme(themeId) {
   const theme = THEMES[themeId];
   if (!theme) return;
 
   const root = document.documentElement;
 
-  const defaultCursor = buildCursorSvg(theme.cursorStroke, theme.cursorFill, theme.cursorEye, 32, 'default');
-  const pointerCursor = buildCursorSvg(theme.cursorStroke, theme.cursorFill, theme.cursorEye, 36, 'pointer');
+  const defaultCursor = buildFaviconCursor('default');
+  const pointerCursor = buildFaviconCursor('pointer');
   const textCursor = buildCursorSvg(theme.cursorStroke, theme.cursorFill, theme.cursorEye, 24, 'text');
 
   root.style.setProperty('--cursor-default', defaultCursor);
