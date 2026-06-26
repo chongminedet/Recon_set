@@ -45,33 +45,27 @@
   --transition-fast:   150ms ease-out;
   --transition-normal: 300ms ease-out;
 
-  /* ── Ghost cursor pack ── */
-  --cursor-default: url("/cursors/normal.svg") 3 2, auto;
-  --cursor-pointer: url("/cursors/link.svg") 17 2, pointer;
-  --cursor-text: url("/cursors/text.svg") 16 3, text;
-  --cursor-wait: url("/cursors/wait.svg") 16 16, wait;
-  --cursor-crosshair: url("/cursors/crosshair.svg") 16 16, crosshair;
-  --cursor-not-allowed: url("/cursors/not-allowed.svg") 16 16, not-allowed;
-  --cursor-move: url("/cursors/move.svg") 16 16, move;
-  --cursor-help: url("/cursors/help.svg") 24 4, help;
+  /* ── Ghost cursor pack (set by useCursorTheme.js at runtime) ── */
+  --cursor-default: auto;
+  --cursor-pointer: pointer;
+  --cursor-text: text;
+  --cursor-wait: wait;
+  --cursor-crosshair: crosshair;
+  --cursor-not-allowed: not-allowed;
+  --cursor-move: move;
+  --cursor-help: help;
 }
 
-/* ── Theme overrides ─────────────────────────────────────────────────── */
+/* ── Theme overrides (cursors set by useCursorTheme.js) ──────────────── */
 [data-theme="midnight"] {
   --color-accent-primary:   #7c5cff;
   --color-accent-secondary: #ff6ec7;
   --color-accent-tertiary:  #5cf5ff;
-  --cursor-default: url("/cursors/normal.svg") 3 2, auto;
-  --cursor-pointer: url("/cursors/link.svg") 17 2, pointer;
-  --cursor-text: url("/cursors/text.svg") 16 3, text;
 }
 [data-theme="ocean"] {
   --color-accent-primary:   #00d4ff;
   --color-accent-secondary: #005fff;
   --color-accent-tertiary:  #00ff88;
-  --cursor-default: url("/cursors/normal.svg") 3 2, auto;
-  --cursor-pointer: url("/cursors/link.svg") 17 2, pointer;
-  --cursor-text: url("/cursors/text.svg") 16 3, text;
 }
 [data-theme="synthwave"] {
   --color-bg-primary:    #1a0a2e;
@@ -81,17 +75,11 @@
   --color-accent-secondary: #7c5cff;
   --color-accent-tertiary:  #00d4ff;
   --color-border:        #5a2a7a;
-  --cursor-default: url("/cursors/normal.svg") 3 2, auto;
-  --cursor-pointer: url("/cursors/link.svg") 17 2, pointer;
-  --cursor-text: url("/cursors/text.svg") 16 3, text;
 }
 [data-theme="crimson"] {
   --color-accent-primary:   #ff3344;
   --color-accent-secondary: #ff8800;
   --color-accent-tertiary:  #ff00aa;
-  --cursor-default: url("/cursors/normal.svg") 3 2, auto;
-  --cursor-pointer: url("/cursors/link.svg") 17 2, pointer;
-  --cursor-text: url("/cursors/text.svg") 16 3, text;
 }
 [data-theme="catppuccin"] {
   --color-bg-primary:    #1e1e2e;
@@ -103,9 +91,6 @@
   --color-border:        #45475a;
   --color-text-primary:  #cdd6f4;
   --color-text-secondary:#a6adc8;
-  --cursor-default: url("/cursors/normal.svg") 3 2, auto;
-  --cursor-pointer: url("/cursors/link.svg") 17 2, pointer;
-  --cursor-text: url("/cursors/text.svg") 16 3, text;
 }
 [data-theme="light"] {
   --color-bg-primary:    #f0f2f5;
@@ -117,9 +102,6 @@
   --color-accent-secondary: #e0245e;
   --color-accent-tertiary:  #00bcd4;
   --color-border:        #ced0d4;
-  --cursor-default: url("/cursors/normal.svg") 3 2, auto;
-  --cursor-pointer: url("/cursors/link.svg") 17 2, pointer;
-  --cursor-text: url("/cursors/text.svg") 16 3, text;
 }
 
 /* =====================================================================

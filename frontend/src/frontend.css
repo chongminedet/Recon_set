@@ -30,11 +30,11 @@
   --radius-lg: 12px;
   --transition: 200ms ease;
 
-  --cursor-not-allowed: url("/cursors/not-allowed.svg") 16 16, not-allowed;
-  --cursor-busy: url("/cursors/wait.svg") 16 16, wait;
-  --cursor-help: url("/cursors/help.svg") 24 4, help;
-  --cursor-move: url("/cursors/move.svg") 16 16, move;
-  --cursor-crosshair: url("/cursors/crosshair.svg") 16 16, crosshair;
+  --cursor-not-allowed: not-allowed;
+  --cursor-busy: wait;
+  --cursor-help: help;
+  --cursor-move: move;
+  --cursor-crosshair: crosshair;
 }
 
 /* MIDNIGHT - deep blue purple */
