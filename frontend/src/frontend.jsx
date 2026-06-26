@@ -301,7 +301,12 @@ export default function ReconApp() {
   const [scanId, setScanId] = useState(null);
   const [scanStatus, setScanStatus] = useState(null);
   const [error, setError] = useState('');
-  const [recentActivity, setRecentActivity] = useState([]);
+  const [recentActivity, setRecentActivity] = useState(() => {
+    try {
+      const saved = localStorage.getItem('recon-activity');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [activeNav, setActiveNav] = useState('Dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
@@ -314,6 +319,10 @@ export default function ReconApp() {
     updateCursorTheme(settings.theme);
     localStorage.setItem('recon-settings', JSON.stringify(settings));
   }, [settings]);
+
+  useEffect(() => {
+    localStorage.setItem('recon-activity', JSON.stringify(recentActivity));
+  }, [recentActivity]);
 
   useEffect(() => {
     const fetchTools = async () => {
