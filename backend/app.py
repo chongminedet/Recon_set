@@ -126,6 +126,7 @@ class ScanManager:
     
     def __init__(self):
         self.scans = {}
+        self._lock = threading.Lock()
     
     def create_scan(self, target, target_type, tools):
         """Create a new scan"""
@@ -149,17 +150,19 @@ class ScanManager:
     
     def update_progress(self, scan_id, tool, result):
         """Update scan progress with tool result"""
-        if scan_id in self.scans:
-            self.scans[scan_id]["results"][tool] = result
-            completed = len([r for r in self.scans[scan_id]["results"].values() if r])
-            total = len(self.scans[scan_id]["tools"])
-            self.scans[scan_id]["progress"] = int((completed / total) * 100) if total > 0 else 0
+        with self._lock:
+            if scan_id in self.scans:
+                self.scans[scan_id]["results"][tool] = result
+                completed = len([r for r in self.scans[scan_id]["results"].values() if r])
+                total = len(self.scans[scan_id]["tools"])
+                self.scans[scan_id]["progress"] = int((completed / total) * 100) if total > 0 else 0
     
     def mark_complete(self, scan_id):
         """Mark scan as completed"""
-        if scan_id in self.scans:
-            self.scans[scan_id]["status"] = "completed"
-            self.scans[scan_id]["completed_at"] = datetime.now().isoformat()
+        with self._lock:
+            if scan_id in self.scans:
+                self.scans[scan_id]["status"] = "completed"
+                self.scans[scan_id]["completed_at"] = datetime.now().isoformat()
 
 # Initialize scan manager
 scan_manager = ScanManager()
@@ -198,7 +201,7 @@ def run_command(cmd, timeout=300):
         except subprocess.TimeoutExpired:
             if attempt < max_retries - 1:
                 logger.warning(f"Command timeout (attempt {attempt+1}/{max_retries}), retrying...")
-                timeout = int(timeout * 1.5)  # Add 50% more time
+                timeout = min(int(timeout * 1.5), timeout + 120)  # Add 50% but cap at +120s
                 continue
             logger.error(f"Command timed out after {max_retries} attempts")
             return {"error": f"Command timed out after {timeout}s", "timeout": True, "stdout": "", "stderr": "", "returncode": -1}
@@ -208,25 +211,25 @@ def run_command(cmd, timeout=300):
 
 def validate_target(target, target_type):
     """Validate target input to prevent command injection"""
+    import re
     if not target or len(target) > 255:
         return False
     
-    forbidden = [";", "|", "&", "$", "`", "\n", "\r"]
-    
-    if target_type in ("Domain/IP", "Email"):
-        return not any(char in target for char in forbidden)
-    
+    if target_type == "Domain/IP":
+        # Allow alphanumeric, dots, hyphens, colons (IPv6), slashes (CIDR), @ for email
+        return bool(re.match(r'^[a-zA-Z0-9.\-_:/@]+$', target))
     elif target_type == "Username":
-        return target.replace("_", "").replace("-", "").replace(".", "").isalnum()
-    
+        return bool(re.match(r'^[a-zA-Z0-9._-]+$', target))
+    elif target_type == "Email":
+        return bool(re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', target))
     return False
 
 def execute_tool(tool, target):
     """Execute a specific reconnaissance tool"""
     commands = {
         "WHOIS": f"whois {target}",
-        "DNS": f"dig {target} +short A && dig {target} +short MX && dig {target} +short NS && dig {target} +short TXT",
-        "DNS (Full)": f"dig {target} ANY +noall +answer || dig {target} A +noall +answer && dig {target} MX +noall +answer && dig {target} NS +noall +answer && dig {target} TXT +noall +answer",
+        "DNS": f"dig {target} +short A; dig {target} +short MX; dig {target} +short NS; dig {target} +short TXT",
+        "DNS (Full)": f"dig {target} A +noall +answer; dig {target} MX +noall +answer; dig {target} NS +noall +answer; dig {target} TXT +noall +answer",
         "Reverse DNS": f"dig -x {target} +short || echo 'No PTR record found for {target}'",
         "TLS Certificate": f"echo | timeout 10 openssl s_client -connect {target}:443 -servername {target} 2>/dev/null | openssl x509 -noout -text 2>/dev/null || echo 'Could not retrieve TLS certificate from {target}:443 — target may not have HTTPS'",
         "HTTP Headers": f"curl -I -sS --max-time 10 https://{target} 2>&1 || curl -I -sS --max-time 10 http://{target} 2>&1",
@@ -241,10 +244,10 @@ def execute_tool(tool, target):
         "WAFW00F": f"wafw00f {target}",
         "Nikto": f"nikto -h {target} -maxtime 180s",
         "Gobuster Dir": f"gobuster dir -u https://{target} -w /usr/share/wordlists/dirb/common.txt -q --no-error",
-        "Gobuster DNS": f"gobuster dns -d {target} -w /usr/share/wordlists/dirb/common.txt -q --no-error",
+        "Gobuster DNS": f"gobuster dns -d {target} -w /usr/share/wordlists/dirb/common.txt -q --no-error -t 50",
         "FFUF": f"ffuf -u https://{target}/FUZZ -w /usr/share/wordlists/dirb/common.txt -mc 200,301,302,403 -s",
         "HTTPx": f"httpx -u {target} -silent -title -tech-detect -status-code",
-        "Masscan": f"masscan {target} -p1-10000 --rate=1000",
+        "Masscan": f"masscan {target} -p1-10000 --rate=1000 --open",
         "Maigret": f"maigret {target}",
     }
     
@@ -271,6 +274,11 @@ def execute_tool(tool, target):
         "DNS Zone Transfer": 120,
         "WHOIS": 60,
         "Reverse DNS": 60,
+        "HTTP Headers": 30,
+        "Sherlock": 300,
+        "Subfinder": 180,
+        "WhatWeb": 120,
+        "WAFW00F": 120,
     }
     timeout = timeout_map.get(tool, 120)
     
@@ -504,6 +512,19 @@ def get_scan_status(scan_id):
         return jsonify({"error": "Scan not found"}), 404
     
     return jsonify(scan)
+
+@app.route("/api/scan/<scan_id>/cancel", methods=["POST"])
+@limiter.limit("100 per hour")
+def cancel_scan(scan_id):
+    """Cancel a running scan"""
+    scan = scan_manager.get_scan(scan_id)
+    if not scan:
+        return jsonify({"error": "Scan not found"}), 404
+    if scan["status"] in ("completed", "failed"):
+        return jsonify({"error": "Scan already finished"}), 400
+    scan["status"] = "cancelled"
+    scan["completed_at"] = datetime.now().isoformat()
+    return jsonify({"status": "cancelled"})
 
 @app.route("/api/scan/<scan_id>/export", methods=["GET"])
 @limiter.limit("500 per hour")  # Reasonable limit for exports

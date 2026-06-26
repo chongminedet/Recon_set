@@ -1132,3 +1132,35 @@ details[open] .result-chevron { transform: rotate(90deg); }
   0%, 100% { box-shadow: 0 0 4px var(--accent-glow); transform: scale(1); }
   50% { box-shadow: 0 0 10px var(--accent-glow); transform: scale(1.2); }
 }
+
+/* Tool count badge */
+.tool-count-badge {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.85em;
+}
+
+/* Empty results state */
+.result-empty-state {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius);
+  margin: 12px 0;
+}
+
+/* Activity "+N more" tag */
+.activity-tag-more {
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.7em;
+}
+
+/* Tool card focus outline for keyboard accessibility */
+.tool-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

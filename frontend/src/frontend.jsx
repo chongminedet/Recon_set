@@ -5,16 +5,6 @@ import { ThemeSwitcher } from './components/ThemeSwitcher';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000/api';
 
-const THEMES = [
-  { id: 'phantom', name: 'Phantom', color: '#00ff88' },
-  { id: 'midnight', name: 'Midnight', color: '#7c5cff' },
-  { id: 'ocean', name: 'Ocean', color: '#00d4ff' },
-  { id: 'synthwave', name: 'Synthwave', color: '#ff6ec7' },
-  { id: 'crimson', name: 'Crimson', color: '#ff3344' },
-  { id: 'catppuccin', name: 'Catppuccin', color: '#cba6f7' },
-  { id: 'light', name: 'Light', color: '#f0f2f5' },
-];
-
 const DEFAULT_SETTINGS = {
   theme: 'phantom',
   exportFormat: 'markdown',
@@ -284,6 +274,18 @@ function SettingsPanel({ settings, onUpdate, updateCursorTheme, currentTheme }) 
   );
 }
 
+function getRelativeTime(timestamp) {
+  if (!timestamp) return 'Unknown';
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  if (seconds < 10) return 'Just now';
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
 export default function ReconApp() {
   const [settings, setSettings] = useState(() => {
     try {
@@ -317,15 +319,21 @@ export default function ReconApp() {
     const fetchTools = async () => {
       try {
         const response = await fetch(`${API_BASE}/tools?type=${encodeURIComponent(targetType)}`);
+        if (!response.ok) {
+          setError('Failed to load tools from server');
+          setAvailableTools([]);
+          return;
+        }
         const data = await response.json();
-        setAvailableTools(data.tools);
+        setAvailableTools(data.tools || []);
         if (settings.autoSelectAll) {
-          setSelectedTools([...data.tools]);
+          setSelectedTools([...(data.tools || [])]);
         } else {
           setSelectedTools([]);
         }
       } catch (err) {
-        setError('Failed to load tools');
+        setError('Failed to connect to server');
+        setAvailableTools([]);
       }
     };
     fetchTools();
@@ -338,15 +346,17 @@ export default function ReconApp() {
         const response = await fetch(`${API_BASE}/scan/${scanId}`);
         const data = await response.json();
         setScanStatus(data);
-        if (data.status === 'completed' || data.status === 'failed') {
+        if (data.status === 'completed' || data.status === 'failed' || data.status === 'cancelled') {
           setScanning(false);
           setRecentActivity((prev) => [
             {
+              id: scanId,
               target: target,
               status: data.status,
-              tools: selectedTools,
-              time: 'Just now',
+              tools: [...selectedTools],
+              time: new Date().toLocaleTimeString(),
               progress: data.progress,
+              timestamp: Date.now(),
             },
             ...prev.slice(0, 19),
           ]);
@@ -354,9 +364,9 @@ export default function ReconApp() {
       } catch (err) {
         console.error('Failed to fetch scan status:', err);
       }
-    }, 5000);
+    }, 3000);
     return () => clearInterval(pollInterval);
-  }, [scanId, scanning]);
+  }, [scanId, scanning, target, selectedTools]);
 
   const filteredActivity = useMemo(() => {
     if (!searchQuery.trim()) return recentActivity;
@@ -415,7 +425,12 @@ export default function ReconApp() {
     }
   };
 
-  const handleNewScan = () => {
+  const handleNewScan = async () => {
+    if (scanning && scanId) {
+      try {
+        await fetch(`${API_BASE}/scan/${scanId}/cancel`, { method: 'POST' });
+      } catch (e) { /* ignore */ }
+    }
     setTarget('');
     setTargetType('Domain/IP');
     setSelectedTools([]);
@@ -467,7 +482,12 @@ export default function ReconApp() {
         <div className="module-header">
           <div>
             <h2>Module Configuration</h2>
-            <p className="module-subtitle">Select the reconnaissance vectors for this operation.</p>
+            <p className="module-subtitle">
+              Select the reconnaissance vectors for this operation.
+              {selectedTools.length > 0 && (
+                <span className="tool-count-badge"> {selectedTools.length} of {availableTools.length} selected</span>
+              )}
+            </p>
           </div>
           <div className="module-actions">
             <button className="action-btn select-all" onClick={handleSelectAll}>Select ALL</button>
@@ -480,6 +500,10 @@ export default function ReconApp() {
               key={tool}
               className={`tool-card ${selectedTools.includes(tool) ? 'selected' : ''}`}
               onClick={() => handleToolToggle(tool)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleToolToggle(tool); }}}
+              role="button"
+              tabIndex={0}
+              aria-pressed={selectedTools.includes(tool)}
             >
               <div className="tool-card-header">
                 <span className="tool-icon">{TOOL_ICONS[tool] || '⊕'}</span>
@@ -514,6 +538,11 @@ export default function ReconApp() {
                 ? 'Tap any tool below to expand results'
                 : 'Waiting for results...'}
             </p>
+            {Object.keys(scanStatus.results).length === 0 && scanStatus.status === 'completed' && (
+              <div className="result-empty-state">
+                <p>No tools produced output. Try different tools or a different target.</p>
+              </div>
+            )}
             {Object.entries(scanStatus.results).map(([tool, result]) => (
               <details key={tool} className="result-item">
                 <summary className="result-title">
@@ -577,12 +606,12 @@ export default function ReconApp() {
         <p className="placeholder-text">No scan history yet. Start a scan from the Dashboard.</p>
       ) : (
         <div className="history-list">
-          {filteredActivity.map((a, i) => (
-            <div key={i} className={`history-item ${a.status}`}>
+          {filteredActivity.map((a) => (
+            <div key={a.id || a.timestamp} className={`history-item ${a.status}`}>
               <span className={`history-status-dot ${a.status}`} />
               <div className="history-info">
                 <span className="history-target">{a.target}</span>
-                <span className="history-meta">{a.time} — {a.tools.length} tools — {a.status}</span>
+                <span className="history-meta">{getRelativeTime(a.timestamp)} — {a.tools.length} tools — {a.status}</span>
               </div>
             </div>
           ))}
@@ -679,10 +708,9 @@ export default function ReconApp() {
                 placeholder="Search scans, targets, tools..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onBlur={() => { if (!searchQuery) setSearchExpanded(false); }}
               />
               {searchQuery && (
-                <button className="search-clear" onClick={() => { setSearchQuery(''); setSearchExpanded(false); }}>
+                <button className="search-clear" onMouseDown={(e) => { e.preventDefault(); setSearchQuery(''); setSearchExpanded(false); }}>
                   <Icon name="x" size={14} />
                 </button>
               )}
@@ -710,14 +738,14 @@ export default function ReconApp() {
                     {searchQuery ? 'No matching scans' : 'No recent scans'}
                   </div>
                 ) : (
-                  filteredActivity.map((activity, i) => (
-                    <div key={i} className="activity-item">
+                  filteredActivity.map((activity) => (
+                    <div key={activity.id || activity.timestamp} className="activity-item">
                       <div className={`activity-status ${activity.status}`}>
                         {activity.status === 'completed' ? <Icon name="check" size={14} /> : activity.status === 'failed' ? <Icon name="x" size={14} /> : <Icon name="radar" size={14} />}
                       </div>
                       <div className="activity-info">
                         <span className="activity-target">{activity.target}</span>
-                        <span className="activity-time">{activity.time}</span>
+                        <span className="activity-time">{getRelativeTime(activity.timestamp)}</span>
                         <span className="activity-desc">
                           {activity.status === 'completed'
                             ? 'Scan completed successfully.'
@@ -729,6 +757,9 @@ export default function ReconApp() {
                           {activity.tools.slice(0, 3).map((t) => (
                             <span key={t} className="activity-tag">{t}</span>
                           ))}
+                          {activity.tools.length > 3 && (
+                            <span className="activity-tag activity-tag-more">+{activity.tools.length - 3}</span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -746,6 +777,7 @@ export default function ReconApp() {
           { name: 'Dashboard', icon: 'dashboard' },
           { name: 'Active Scans', icon: 'radar', label: 'Scans' },
           { name: 'Scan History', icon: 'history', label: 'History' },
+          { name: 'Settings', icon: 'settings' },
         ].map((item) => (
           <button
             key={item.name}
