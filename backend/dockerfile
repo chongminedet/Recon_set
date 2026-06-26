@@ -16,9 +16,13 @@ RUN apt-get update && apt-get install -y \
     ruby-bundler \
     libjson-perl \
     libxml-writer-perl \
+    libnet-ssleay-perl \
+    libio-socket-ssl-perl \
     wget \
     unzip \
     dirb \
+    cpanminus \
+    && cpanm --notest JSON XML::Writer \
     && rm -rf /var/lib/apt/lists/*
 
 # Download wordlists to /usr/share/wordlists/common.txt
