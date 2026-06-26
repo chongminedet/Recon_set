@@ -45,14 +45,15 @@
   --transition-fast:   150ms ease-out;
   --transition-normal: 300ms ease-out;
 
-  /* ── Ghost cursors ──
-     Normal ghost — uses the favicon.svg as cursor.
-     Pointer ghost (slightly larger, "reaching") — on clickable elements. */
-  --cursor-default: url("/favicon.svg") 8 4, auto;
-
-  --cursor-pointer: url("/favicon.svg") 10 4, pointer;
-
-  --cursor-text: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='28' viewBox='0 0 32 36'%3E%3Cpath d='M16 2C9.37 2 4 7.37 4 14v4c0 2.95-1.49 5.51-3.76 7.03.12.91.45 1.75.97 2.47C2.45 28.57 3.85 30 5.67 30c1.23 0 2.33-.5 3.13-1.3C10 29.04 12.88 30 16 30s6-.96 7.2-1.3c.8.8 1.9 1.3 3.13 1.3 1.82 0 3.22-1.43 3.76-3.49.52-.72.85-1.56.97-2.47C28.76 22.51 27.28 19.95 27.28 17v-3C27.28 7.37 21.91 2 16 2z' fill='%23c8d0e0' stroke='%2300d4ff' stroke-width='1.5'/%3E%3Ccircle cx='12' cy='13' r='2.5' fill='%230a0f1a'/%3E%3Ccircle cx='20' cy='13' r='2.5' fill='%230a0f1a'/%3E%3C/svg%3E") 8 4, text;
+  /* ── Ghost cursor pack ── */
+  --cursor-default: url("/cursors/normal.svg") 3 2, auto;
+  --cursor-pointer: url("/cursors/link.svg") 17 2, pointer;
+  --cursor-text: url("/cursors/text.svg") 16 3, text;
+  --cursor-wait: url("/cursors/wait.svg") 16 16, wait;
+  --cursor-crosshair: url("/cursors/crosshair.svg") 16 16, crosshair;
+  --cursor-not-allowed: url("/cursors/not-allowed.svg") 16 16, not-allowed;
+  --cursor-move: url("/cursors/move.svg") 16 16, move;
+  --cursor-help: url("/cursors/help.svg") 24 4, help;
 }
 
 /* ── Theme overrides ─────────────────────────────────────────────────── */
@@ -60,17 +61,17 @@
   --color-accent-primary:   #7c5cff;
   --color-accent-secondary: #ff6ec7;
   --color-accent-tertiary:  #5cf5ff;
-  --cursor-default: url("/favicon.svg") 8 4, auto;
-  --cursor-pointer: url("/favicon.svg") 10 4, pointer;
-  --cursor-text: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='28' viewBox='0 0 32 36'%3E%3Cpath d='M16 2C9.37 2 4 7.37 4 14v4c0 2.95-1.49 5.51-3.76 7.03.12.91.45 1.75.97 2.47C2.45 28.57 3.85 30 5.67 30c1.23 0 2.33-.5 3.13-1.3C10 29.04 12.88 30 16 30s6-.96 7.2-1.3c.8.8 1.9 1.3 3.13 1.3 1.82 0 3.22-1.43 3.76-3.49.52-.72.85-1.56.97-2.47C28.76 22.51 27.28 19.95 27.28 17v-3C27.28 7.37 21.91 2 16 2z' fill='%23c8d0e0' stroke='%235cf5ff' stroke-width='1.5'/%3E%3Ccircle cx='12' cy='13' r='2.5' fill='%230a0f1a'/%3E%3Ccircle cx='20' cy='13' r='2.5' fill='%230a0f1a'/%3E%3C/svg%3E") 8 4, text;
+  --cursor-default: url("/cursors/normal.svg") 3 2, auto;
+  --cursor-pointer: url("/cursors/link.svg") 17 2, pointer;
+  --cursor-text: url("/cursors/text.svg") 16 3, text;
 }
 [data-theme="ocean"] {
   --color-accent-primary:   #00d4ff;
   --color-accent-secondary: #005fff;
   --color-accent-tertiary:  #00ff88;
-  --cursor-default: url("/favicon.svg") 8 4, auto;
-  --cursor-pointer: url("/favicon.svg") 10 4, pointer;
-  --cursor-text: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='28' viewBox='0 0 32 36'%3E%3Cpath d='M16 2C9.37 2 4 7.37 4 14v4c0 2.95-1.49 5.51-3.76 7.03.12.91.45 1.75.97 2.47C2.45 28.57 3.85 30 5.67 30c1.23 0 2.33-.5 3.13-1.3C10 29.04 12.88 30 16 30s6-.96 7.2-1.3c.8.8 1.9 1.3 3.13 1.3 1.82 0 3.22-1.43 3.76-3.49.52-.72.85-1.56.97-2.47C28.76 22.51 27.28 19.95 27.28 17v-3C27.28 7.37 21.91 2 16 2z' fill='%23c8d0e0' stroke='%2300d4ff' stroke-width='1.5'/%3E%3Ccircle cx='12' cy='13' r='2.5' fill='%230a0f1a'/%3E%3Ccircle cx='20' cy='13' r='2.5' fill='%230a0f1a'/%3E%3C/svg%3E") 8 4, text;
+  --cursor-default: url("/cursors/normal.svg") 3 2, auto;
+  --cursor-pointer: url("/cursors/link.svg") 17 2, pointer;
+  --cursor-text: url("/cursors/text.svg") 16 3, text;
 }
 [data-theme="synthwave"] {
   --color-bg-primary:    #1a0a2e;
@@ -80,17 +81,17 @@
   --color-accent-secondary: #7c5cff;
   --color-accent-tertiary:  #00d4ff;
   --color-border:        #5a2a7a;
-  --cursor-default: url("/favicon.svg") 8 4, auto;
-  --cursor-pointer: url("/favicon.svg") 10 4, pointer;
-  --cursor-text: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='28' viewBox='0 0 32 36'%3E%3Cpath d='M16 2C9.37 2 4 7.37 4 14v4c0 2.95-1.49 5.51-3.76 7.03.12.91.45 1.75.97 2.47C2.45 28.57 3.85 30 5.67 30c1.23 0 2.33-.5 3.13-1.3C10 29.04 12.88 30 16 30s6-.96 7.2-1.3c.8.8 1.9 1.3 3.13 1.3 1.82 0 3.22-1.43 3.76-3.49.52-.72.85-1.56.97-2.47C28.76 22.51 27.28 19.95 27.28 17v-3C27.28 7.37 21.91 2 16 2z' fill='%23c8d0e0' stroke='%2300d4ff' stroke-width='1.5'/%3E%3Ccircle cx='12' cy='13' r='2.5' fill='%230a0f1a'/%3E%3Ccircle cx='20' cy='13' r='2.5' fill='%230a0f1a'/%3E%3C/svg%3E") 8 4, text;
+  --cursor-default: url("/cursors/normal.svg") 3 2, auto;
+  --cursor-pointer: url("/cursors/link.svg") 17 2, pointer;
+  --cursor-text: url("/cursors/text.svg") 16 3, text;
 }
 [data-theme="crimson"] {
   --color-accent-primary:   #ff3344;
   --color-accent-secondary: #ff8800;
   --color-accent-tertiary:  #ff00aa;
-  --cursor-default: url("/favicon.svg") 8 4, auto;
-  --cursor-pointer: url("/favicon.svg") 10 4, pointer;
-  --cursor-text: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='28' viewBox='0 0 32 36'%3E%3Cpath d='M16 2C9.37 2 4 7.37 4 14v4c0 2.95-1.49 5.51-3.76 7.03.12.91.45 1.75.97 2.47C2.45 28.57 3.85 30 5.67 30c1.23 0 2.33-.5 3.13-1.3C10 29.04 12.88 30 16 30s6-.96 7.2-1.3c.8.8 1.9 1.3 3.13 1.3 1.82 0 3.22-1.43 3.76-3.49.52-.72.85-1.56.97-2.47C28.76 22.51 27.28 19.95 27.28 17v-3C27.28 7.37 21.91 2 16 2z' fill='%23c8d0e0' stroke='%23ff8800' stroke-width='1.5'/%3E%3Ccircle cx='12' cy='13' r='2.5' fill='%230a0f1a'/%3E%3Ccircle cx='20' cy='13' r='2.5' fill='%230a0f1a'/%3E%3C/svg%3E") 8 4, text;
+  --cursor-default: url("/cursors/normal.svg") 3 2, auto;
+  --cursor-pointer: url("/cursors/link.svg") 17 2, pointer;
+  --cursor-text: url("/cursors/text.svg") 16 3, text;
 }
 [data-theme="catppuccin"] {
   --color-bg-primary:    #1e1e2e;
@@ -102,9 +103,9 @@
   --color-border:        #45475a;
   --color-text-primary:  #cdd6f4;
   --color-text-secondary:#a6adc8;
-  --cursor-default: url("/favicon.svg") 8 4, auto;
-  --cursor-pointer: url("/favicon.svg") 10 4, pointer;
-  --cursor-text: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='28' viewBox='0 0 32 36'%3E%3Cpath d='M16 2C9.37 2 4 7.37 4 14v4c0 2.95-1.49 5.51-3.76 7.03.12.91.45 1.75.97 2.47C2.45 28.57 3.85 30 5.67 30c1.23 0 2.33-.5 3.13-1.3C10 29.04 12.88 30 16 30s6-.96 7.2-1.3c.8.8 1.9 1.3 3.13 1.3 1.82 0 3.22-1.43 3.76-3.49.52-.72.85-1.56.97-2.47C28.76 22.51 27.28 19.95 27.28 17v-3C27.28 7.37 21.91 2 16 2z' fill='%23cdd6f4' stroke='%2389dceb' stroke-width='1.5'/%3E%3Ccircle cx='12' cy='13' r='2.5' fill='%231e1e2e'/%3E%3Ccircle cx='20' cy='13' r='2.5' fill='%231e1e2e'/%3E%3C/svg%3E") 8 4, text;
+  --cursor-default: url("/cursors/normal.svg") 3 2, auto;
+  --cursor-pointer: url("/cursors/link.svg") 17 2, pointer;
+  --cursor-text: url("/cursors/text.svg") 16 3, text;
 }
 [data-theme="light"] {
   --color-bg-primary:    #f0f2f5;
@@ -116,9 +117,9 @@
   --color-accent-secondary: #e0245e;
   --color-accent-tertiary:  #00bcd4;
   --color-border:        #ced0d4;
-  --cursor-default: url("/favicon.svg") 8 4, auto;
-  --cursor-pointer: url("/favicon.svg") 10 4, pointer;
-  --cursor-text: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='28' viewBox='0 0 32 36'%3E%3Cpath d='M16 2C9.37 2 4 7.37 4 14v4c0 2.95-1.49 5.51-3.76 7.03.12.91.45 1.75.97 2.47C2.45 28.57 3.85 30 5.67 30c1.23 0 2.33-.5 3.13-1.3C10 29.04 12.88 30 16 30s6-.96 7.2-1.3c.8.8 1.9 1.3 3.13 1.3 1.82 0 3.22-1.43 3.76-3.49.52-.72.85-1.56.97-2.47C28.76 22.51 27.28 19.95 27.28 17v-3C27.28 7.37 21.91 2 16 2z' fill='%233a3f5a' stroke='%230866ff' stroke-width='1.5'/%3E%3Ccircle cx='12' cy='13' r='2.5' fill='%23ffffff'/%3E%3Ccircle cx='20' cy='13' r='2.5' fill='%23ffffff'/%3E%3C/svg%3E") 8 4, text;
+  --cursor-default: url("/cursors/normal.svg") 3 2, auto;
+  --cursor-pointer: url("/cursors/link.svg") 17 2, pointer;
+  --cursor-text: url("/cursors/text.svg") 16 3, text;
 }
 
 /* =====================================================================
