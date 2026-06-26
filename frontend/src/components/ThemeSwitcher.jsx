@@ -16,21 +16,21 @@ const styles = {
     flexWrap: 'wrap',
     gap: '8px',
   },
-  card: (isActive, color) => ({
+  card: (isActive) => ({
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
     padding: '8px 14px',
-    background: isActive ? `${color}12` : 'var(--color-bg-primary)',
-    border: `2px solid ${isActive ? color : 'var(--color-border)'}`,
+    background: isActive ? 'rgba(0, 255, 136, 0.08)' : 'var(--color-bg-primary)',
+    border: `2px solid ${isActive ? 'var(--color-accent-primary)' : 'var(--color-border)'}`,
     borderRadius: 'var(--border-radius)',
     cursor: 'var(--cursor-pointer)',
     transition: 'all 150ms ease-out',
     fontFamily: 'var(--font-display)',
     fontSize: '0.8rem',
     fontWeight: isActive ? '700' : '500',
-    color: isActive ? color : 'var(--color-text-secondary)',
-    boxShadow: isActive ? `0 0 12px ${color}25` : 'none',
+    color: isActive ? 'var(--color-accent-primary)' : 'var(--color-text-secondary)',
+    boxShadow: isActive ? '0 0 12px rgba(0, 255, 136, 0.15)' : 'none',
   }),
   swatch: (color) => ({
     width: '14px',
@@ -51,7 +51,7 @@ export function ThemeSwitcher({ currentTheme, onThemeChange }) {
       {THEMES.map((theme) => (
         <button
           key={theme.id}
-          style={styles.card(currentTheme === theme.id, theme.color)}
+          style={styles.card(currentTheme === theme.id)}
           onClick={() => onThemeChange(theme.id)}
           onMouseEnter={(e) => {
             if (currentTheme !== theme.id) {
