@@ -243,11 +243,11 @@ def execute_tool(tool, target):
         "WhatWeb": f"whatweb {target} -a 3 --color=never",
         "WAFW00F": f"wafw00f {target}",
         "Nikto": f"nikto -h {target} -maxtime 180s",
-        "Gobuster Dir": f"gobuster dir -u https://{target} -w /usr/share/wordlists/dirb/common.txt -q --no-error",
-        "Gobuster DNS": f"gobuster dns -d {target} -w /usr/share/wordlists/dirb/common.txt -q --no-error -t 50",
-        "FFUF": f"ffuf -u https://{target}/FUZZ -w /usr/share/wordlists/dirb/common.txt -mc 200,301,302,403 -s",
-        "HTTPx": f"httpx -u {target} -silent -title -tech-detect -status-code",
-        "Masscan": f"masscan {target} -p1-10000 --rate=1000 --open",
+        "Gobuster Dir": f"gobuster dir -u https://{target} -w /usr/share/wordlists/common.txt -q --no-error",
+        "Gobuster DNS": f"gobuster dns --domain {target} -w /usr/share/wordlists/common.txt -q --no-error -t 50",
+        "FFUF": f"ffuf -u https://{target}/FUZZ -w /usr/share/wordlists/common.txt -mc 200,301,302,403 -s",
+        "HTTPx": f"httpx {target} -silent -title -tech-detect -status-code",
+        "Masscan": f"target_ip=$(dig +short {target} | head -1); if [ -z \"$target_ip\" ]; then echo 'Could not resolve {target} to IP'; else masscan $target_ip -p1-10000 --rate=1000 --open; fi",
         "Maigret": f"maigret {target}",
     }
     

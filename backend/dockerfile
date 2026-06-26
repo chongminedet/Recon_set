@@ -13,13 +13,20 @@ RUN apt-get update && apt-get install -y \
     git \
     masscan \
     ruby-full \
+    ruby-bundler \
     wget \
     unzip \
     dirb \
     && rm -rf /var/lib/apt/lists/*
 
+# Download wordlists to /usr/share/wordlists/common.txt
+RUN mkdir -p /usr/share/wordlists \
+    && wget -q -O /usr/share/wordlists/common.txt https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/common.txt
+
 # Install WhatWeb from git (not in Debian repos)
 RUN git clone --depth 1 https://github.com/urbanadventurer/WhatWeb.git /opt/whatweb \
+    && cd /opt/whatweb \
+    && bundle install --without development test 2>/dev/null || true \
     && ln -s /opt/whatweb/whatweb /usr/local/bin/whatweb
 
 # Install Nikto from git (not in Debian repos)
