@@ -3,3 +3,6 @@ Screenshot*.png
 PROJECT_MEMORY.md
 Project_MEMORY.md
 .env
+Recon_results/
+ghost-cursors-preview.html
+node_modules/
