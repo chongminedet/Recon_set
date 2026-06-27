@@ -1,14 +1,6 @@
-/* =====================================================================
-   RECON_SET — FULL RESPONSIVE CSS
-   Ghost cursor, hamburger sidebar, all breakpoints
-   ===================================================================== */
-
-/* ── GHOST CURSOR SVG (inline base64) ────────────────────────────────── */
-/* The ghost cursor replaces the default pointer across the whole app.
-   A separate "pointer" version is used on clickable elements.          */
 
 :root {
-  /* ── Color Palette ── */
+
   --color-bg-primary:    #0a0e27;
   --color-bg-secondary:  #1a1f3a;
   --color-bg-tertiary:   #2a2f4a;
@@ -22,30 +14,25 @@
   --color-warning:       #ffa500;
   --color-error:         #ff006e;
 
-  /* ── Typography ── */
   --font-mono:    'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   --font-display: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-body:    -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-  /* ── Spacing ── */
   --space-xs: 0.5rem;
   --space-sm: 1rem;
   --space-md: 1.5rem;
   --space-lg: 2rem;
   --space-xl: 3rem;
 
-  /* ── Sizing ── */
   --max-width:       1200px;
   --sidebar-width:   220px;
   --topbar-height:   56px;
   --border-radius:   8px;
   --border-radius-lg:12px;
 
-  /* ── Transitions ── */
   --transition-fast:   150ms ease-out;
   --transition-normal: 300ms ease-out;
 
-  /* ── Ghost cursor pack (set by useCursorTheme.js at runtime) ── */
   --cursor-default: auto;
   --cursor-pointer: pointer;
   --cursor-text: text;
@@ -56,7 +43,6 @@
   --cursor-help: help;
 }
 
-/* ── Theme overrides (cursors set by useCursorTheme.js) ──────────────── */
 [data-theme="midnight"] {
   --color-accent-primary:   #7c5cff;
   --color-accent-secondary: #ff6ec7;
@@ -104,10 +90,6 @@
   --color-border:        #ced0d4;
 }
 
-/* =====================================================================
-   RESET & BASE
-   ===================================================================== */
-
 *, *::before, *::after {
   margin: 0; padding: 0; box-sizing: border-box;
 }
@@ -125,7 +107,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Ghost cursor on all interactive elements */
 a, button, [role="button"],
 select, label[for],
 .tool-card, .nav-item, .bottom-nav-item,
@@ -139,25 +120,16 @@ input, textarea {
   cursor: var(--cursor-text);
 }
 
-/* disabled state — keep ghost, just greyed */
 :disabled, [disabled] {
   cursor: var(--cursor-default);
   opacity: 0.55;
 }
-
-/* =====================================================================
-   APP SHELL — sidebar + main
-   ===================================================================== */
 
 .recon-app {
   display: flex;
   min-height: 100vh;
   position: relative;
 }
-
-/* =====================================================================
-   SIDEBAR
-   ===================================================================== */
 
 .sidebar {
   width: var(--sidebar-width);
@@ -260,7 +232,6 @@ input, textarea {
   transform: translateY(-1px);
 }
 
-/* Ghost/skull decoration at bottom of sidebar */
 .sidebar-skull {
   margin-top: auto;
   padding: var(--space-md);
@@ -279,7 +250,6 @@ input, textarea {
   letter-spacing: 1px;
 }
 
-/* ── Sidebar overlay (mobile, dims content behind open sidebar) ── */
 .sidebar-overlay {
   display: none;
   position: fixed;
@@ -293,10 +263,6 @@ input, textarea {
   opacity: 1;
 }
 
-/* =====================================================================
-   MAIN AREA
-   ===================================================================== */
-
 .main-area {
   flex: 1;
   margin-left: var(--sidebar-width);
@@ -305,10 +271,6 @@ input, textarea {
   min-height: 100vh;
   min-width: 0;
 }
-
-/* =====================================================================
-   TOPBAR
-   ===================================================================== */
 
 .topbar {
   position: sticky;
@@ -348,9 +310,8 @@ input, textarea {
   flex-shrink: 0;
 }
 
-/* ── Hamburger button ── */
 .hamburger-btn {
-  display: none;          /* hidden on desktop — sidebar is always visible */
+  display: none;          
   background: none;
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius);
@@ -368,7 +329,6 @@ input, textarea {
   color: var(--color-accent-primary);
 }
 
-/* ── Search bar ── */
 .search-bar {
   display: flex;
   align-items: center;
@@ -422,10 +382,6 @@ input, textarea {
   align-items: center;
 }
 
-/* =====================================================================
-   CONTENT GRID (center + right sidebar)
-   ===================================================================== */
-
 .content-grid {
   display: grid;
   grid-template-columns: 1fr 280px;
@@ -442,10 +398,6 @@ input, textarea {
   flex-direction: column;
   gap: var(--space-lg);
 }
-
-/* =====================================================================
-   RIGHT SIDEBAR — ACTIVITY PANEL
-   ===================================================================== */
 
 .right-sidebar {
   position: sticky;
@@ -554,10 +506,6 @@ input, textarea {
   font-family: var(--font-mono);
 }
 
-/* =====================================================================
-   SCAN INPUT CARD
-   ===================================================================== */
-
 .scan-input-card {
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
@@ -631,10 +579,6 @@ input, textarea {
   color: #ff6b9d;
   font-size: 0.875rem;
 }
-
-/* =====================================================================
-   MODULE CONFIG / TOOL CARDS
-   ===================================================================== */
 
 .module-config {
   background: var(--color-bg-secondary);
@@ -761,10 +705,6 @@ input, textarea {
   line-height: 1.4;
 }
 
-/* =====================================================================
-   RESULTS PANEL
-   ===================================================================== */
-
 .results-panel {
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
@@ -875,10 +815,6 @@ input, textarea {
   border-top: 1px solid var(--color-border);
 }
 
-/* =====================================================================
-   BUTTONS (general)
-   ===================================================================== */
-
 .btn {
   padding: var(--space-xs) var(--space-md);
   border: none;
@@ -910,10 +846,6 @@ input, textarea {
   background: rgba(0,255,136,0.1);
   box-shadow: 0 0 15px rgba(0,255,136,0.2);
 }
-
-/* =====================================================================
-   PLACEHOLDER PAGES (Active Scans, History)
-   ===================================================================== */
 
 .placeholder-page {
   background: var(--color-bg-secondary);
@@ -950,10 +882,6 @@ input, textarea {
 .history-status-dot.running   { background: var(--color-accent-tertiary); }
 .history-target { font-weight: 600; font-size: 0.875rem; }
 .history-meta   { font-size: 0.75rem; color: var(--color-text-secondary); }
-
-/* =====================================================================
-   SETTINGS PANEL
-   ===================================================================== */
 
 .settings-panel {
   background: var(--color-bg-secondary);
@@ -1070,12 +998,8 @@ input, textarea {
 }
 .settings-about-sub { font-size: 0.8rem; opacity: 0.7; }
 
-/* =====================================================================
-   BOTTOM NAV (mobile only)
-   ===================================================================== */
-
 .bottom-nav {
-  display: none;          /* hidden on desktop */
+  display: none;          
   position: fixed;
   bottom: 0; left: 0; right: 0;
   background: var(--color-bg-secondary);
@@ -1105,16 +1029,10 @@ input, textarea {
 .bottom-nav-item.active { color: var(--color-accent-primary); }
 .bottom-nav-icon { display: flex; }
 
-/* =====================================================================
-   RESPONSIVE BREAKPOINTS
-   ===================================================================== */
-
-/* ── Large desktop (≥ 1280px) — wide tool grid ── */
 @media (min-width: 1280px) {
   .tools-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
 }
 
-/* ── Medium (960px–1279px) — normal desktop ── */
 @media (max-width: 1100px) {
   .content-grid { grid-template-columns: 1fr; }
   .right-sidebar {
@@ -1123,15 +1041,13 @@ input, textarea {
   }
 }
 
-/* ── Small desktop / large tablet (769px–959px) ── */
 @media (max-width: 960px) {
   :root { --sidebar-width: 200px; }
   .tools-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
 }
 
-/* ── Tablet (577px–768px) — sidebar collapses to overlay ── */
 @media (max-width: 768px) {
-  /* Push sidebar off-screen; hamburger shows it */
+
   .sidebar {
     transform: translateX(-100%);
     box-shadow: 4px 0 24px rgba(0,0,0,0.5);
@@ -1140,16 +1056,12 @@ input, textarea {
   .sidebar-overlay { display: block; pointer-events: none; }
   .sidebar-overlay.visible { pointer-events: all; }
 
-  /* Main area fills full width */
   .main-area { margin-left: 0; }
 
-  /* Show hamburger */
   .hamburger-btn { display: flex; }
 
-  /* Show bottom nav */
   .bottom-nav { display: flex; }
 
-  /* Add bottom padding so content isn't behind bottom nav */
   .content-grid { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
 
   .scan-type-select { width: 120px; }
@@ -1161,7 +1073,6 @@ input, textarea {
   }
 }
 
-/* ── Mobile (≤ 576px) ── */
 @media (max-width: 576px) {
   .scan-input-row {
     flex-direction: column;
@@ -1181,7 +1092,6 @@ input, textarea {
   .result-output { font-size: 0.75rem; }
 }
 
-/* ── Very small (≤ 380px) ── */
 @media (max-width: 380px) {
   :root {
     --space-sm: 0.75rem;
@@ -1191,10 +1101,6 @@ input, textarea {
   .tools-grid { grid-template-columns: 1fr; }
   .topbar { padding: 0 var(--space-sm); }
 }
-
-/* =====================================================================
-   ACCESSIBILITY
-   ===================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -1214,7 +1120,6 @@ input, textarea {
   outline-offset: 2px;
 }
 
-/* ── Scrollbar styling (webkit) ── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--color-bg-primary); }
 ::-webkit-scrollbar-thumb {
