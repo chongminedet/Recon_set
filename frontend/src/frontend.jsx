@@ -472,7 +472,7 @@ export default function ReconApp() {
             onChange={(e) => setTarget(e.target.value)}
             placeholder={
               targetType === 'Domain/IP'
-                ? 'Enter target domain or IP (e.g., example.com, 192.168.1.1)'
+                ? 'Enter target domain or IP (e.g., example.com, 127.0.0.1)'
                 : targetType === 'Username'
                 ? 'Enter username (e.g., john_doe)'
                 : 'Enter email or domain (e.g., user@example.com)'
