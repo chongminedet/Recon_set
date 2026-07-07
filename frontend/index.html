@@ -6,6 +6,18 @@
     <title>👾Recon_set</title>
   </head>
   <body>
+    <div class="custom-cursor" id="custom-cursor"></div>
     <div id="root"></div>
+    <script>
+      const cursor = document.getElementById('custom-cursor');
+      document.addEventListener('mousemove', (e) => {
+        cursor.style.left = e.clientX - 20 + 'px';
+        cursor.style.top = e.clientY - 20 + 'px';
+      });
+      document.querySelectorAll('.tool-card, .nav-item, .skill-pill, .exp-item').forEach(el => {
+        el.addEventListener('mouseenter', () => { cursor.style.transform = 'scale(1.8)'; });
+        el.addEventListener('mouseleave', () => { cursor.style.transform = 'scale(1)'; });
+      });
+    </script>
   </body>
 </html>

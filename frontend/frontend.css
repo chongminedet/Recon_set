@@ -43,6 +43,18 @@
   --cursor-help: help;
 }
 
+.custom-cursor {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 0.15s ease;
+  background: url('/cursor.jpg') center/cover no-repeat;
+  mix-blend-mode: difference;
+}
+
 [data-theme="midnight"] {
   --color-accent-primary:   #7c5cff;
   --color-accent-secondary: #ff6ec7;
