@@ -14,10 +14,21 @@
         cursor.style.left = e.clientX - 20 + 'px';
         cursor.style.top = e.clientY - 20 + 'px';
       });
-      document.querySelectorAll('.tool-card, .nav-item, .skill-pill, .exp-item').forEach(el => {
-        el.addEventListener('mouseenter', () => { cursor.style.transform = 'scale(1.8)'; });
-        el.addEventListener('mouseleave', () => { cursor.style.transform = 'scale(1)'; });
-      });
+
+      function bindHoverEvents() {
+        document.querySelectorAll('.tool-card, .nav-item, .bottom-nav-item, .result-title, .hamburger-btn, .new-scan-btn, .action-btn, .execute-btn, .settings-theme-card, .settings-toggle, a, button').forEach(el => {
+          if (!el.dataset.cursorBound) {
+            el.dataset.cursorBound = 'true';
+            el.addEventListener('mouseenter', () => { cursor.style.transform = 'scale(1.8)'; });
+            el.addEventListener('mouseleave', () => { cursor.style.transform = 'scale(1)'; });
+          }
+        });
+      }
+
+      bindHoverEvents();
+
+      const observer = new MutationObserver(bindHoverEvents);
+      observer.observe(document.body, { childList: true, subtree: true });
     </script>
   </body>
 </html>

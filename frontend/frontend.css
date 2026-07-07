@@ -55,6 +55,14 @@
   mix-blend-mode: difference;
 }
 
+body, a, button, [role="button"],
+.tool-card, .nav-item, .bottom-nav-item,
+.result-title, .hamburger-btn, .new-scan-btn,
+.action-btn, .execute-btn, .settings-theme-card,
+.settings-toggle, summary, input, textarea {
+  cursor: none !important;
+}
+
 [data-theme="midnight"] {
   --color-accent-primary:   #7c5cff;
   --color-accent-secondary: #ff6ec7;
