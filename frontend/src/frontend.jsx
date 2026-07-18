@@ -16,10 +16,21 @@ const DEFAULT_SETTINGS = {
 const TOOL_ICONS = {
   'WHOIS': '⊕', 'DNS': '⊞', 'DNS (Full)': '⊠', 'Reverse DNS': '⇄',
   'TLS Certificate': '⊙', 'HTTP Headers': '⊘', 'Nmap Basic': '⊛',
-  'Nmap Aggressive': '⚠', 'DNS Zone Transfer': '⊕', 'Sherlock': '⊕',
-  'Subfinder': '◎', 'theHarvester': '⚡', 'WhatWeb': '◈', 'WAFW00F': '◆',
-  'Nikto': '◇', 'Gobuster Dir': '▣', 'Gobuster DNS': '▤', 'FFUF': '▥',
-  'HTTPx': '▦', 'Masscan': '▧', 'Maigret': '⊕', 'Holehe': '⊙',
+  'Nmap Aggressive': '⚠', 'Nmap Vuln Scripts': '⚠', 'DNS Zone Transfer': '⊕',
+  'Sherlock': '⊕', 'Subfinder': '◎', 'theHarvester': '⚡', 'WhatWeb': '◈',
+  'WAFW00F': '◆', 'Nikto': '◇', 'Gobuster Dir': '▣', 'Gobuster DNS': '▤',
+  'FFUF': '▥', 'HTTPx': '▦', 'Masscan': '▧', 'Maigret': '⊕', 'Holehe': '⊙',
+  'SSL Scan': '🔒', 'Nuclei': '🎯', 'CORS Test': '🌐', 'Security Headers': '🛡',
+  'Technology Stack': '⚙', 'Port Scan Full': '📡', 'Subdomain Takeover': '🔓',
+};
+
+const SCAN_PROFILES = {
+  quick: { name: 'Quick Scan', icon: '⚡', color: '#00ff88', description: '~2 min' },
+  standard: { name: 'Standard Scan', icon: '🔍', color: '#00d4ff', description: '~5 min' },
+  deep: { name: 'Deep Scan', icon: '🔬', color: '#ff6b6b', description: '~15 min' },
+  vuln: { name: 'Vulnerability', icon: '🛡', color: '#ffd93d', description: '~10 min' },
+  osint: { name: 'OSINT', icon: '🕵', color: '#c084fc', description: '~5 min' },
+  web: { name: 'Web App', icon: '🌐', color: '#22d3ee', description: '~8 min' },
 };
 
 // SVG Icon Components
@@ -166,6 +177,7 @@ const TOOL_DESCRIPTIONS = {
   'HTTP Headers': 'Server identification, security headers, and tech stack mapping.',
   'Nmap Basic': 'Top 1000 TCP port scan with standard service detection.',
   'Nmap Aggressive': 'Full port range, OS detection, versioning, and default scripts.',
+  'Nmap Vuln Scripts': 'Run Nmap vulnerability detection scripts (vuln category).',
   'DNS Zone Transfer': 'Attempt AXFR queries against authoritative name servers.',
   'Sherlock': 'Search usernames across social media platforms.',
   'Subfinder': 'Passive subdomain enumeration using multiple sources.',
@@ -180,15 +192,24 @@ const TOOL_DESCRIPTIONS = {
   'Masscan': 'High-speed port scanner covering top 10000 ports.',
   'Maigret': 'Advanced username OSINT across 3000+ sites with node analysis.',
   'Holehe': 'Check if email is registered on 100+ websites.',
+  'SSL Scan': 'SSL/TLS cipher suites and certificate chain analysis.',
+  'Nuclei': 'Template-based vulnerability scanner with community templates.',
+  'CORS Test': 'Test for misconfigured Cross-Origin Resource Sharing policies.',
+  'Security Headers': 'Check for missing security headers (HSTS, CSP, etc).',
+  'Technology Stack': 'Deep technology fingerprinting and version detection.',
+  'Port Scan Full': 'Full 65535 port scan for comprehensive coverage.',
+  'Subdomain Takeover': 'Detect subdomains vulnerable to takeover attacks.',
 };
 
 const TOOL_TAGS = {
   'WHOIS': 'OSINT', 'DNS': 'DNS', 'DNS (Full)': 'DNS', 'Reverse DNS': 'DNS',
   'TLS Certificate': 'TLS', 'HTTP Headers': 'HTTP', 'Nmap Basic': 'NMAP',
-  'Nmap Aggressive': 'NMAP-AGGRO', 'DNS Zone Transfer': 'DNS', 'Sherlock': 'OSINT',
-  'Subfinder': 'DNS', 'theHarvester': 'OSINT', 'WhatWeb': 'HTTP', 'WAFW00F': 'HTTP',
-  'Nikto': 'HTTP', 'Gobuster Dir': 'HTTP', 'Gobuster DNS': 'DNS', 'FFUF': 'HTTP',
-  'HTTPx': 'HTTP', 'Masscan': 'NMAP', 'Maigret': 'OSINT', 'Holehe': 'OSINT',
+  'Nmap Aggressive': 'NMAP-AGGRO', 'Nmap Vuln Scripts': 'VULN', 'DNS Zone Transfer': 'DNS',
+  'Sherlock': 'OSINT', 'Subfinder': 'DNS', 'theHarvester': 'OSINT', 'WhatWeb': 'HTTP',
+  'WAFW00F': 'HTTP', 'Nikto': 'VULN', 'Gobuster Dir': 'BRUTE', 'Gobuster DNS': 'BRUTE',
+  'FFUF': 'BRUTE', 'HTTPx': 'HTTP', 'Masscan': 'NMAP', 'Maigret': 'OSINT', 'Holehe': 'OSINT',
+  'SSL Scan': 'TLS', 'Nuclei': 'VULN', 'CORS Test': 'VULN', 'Security Headers': 'HTTP',
+  'Technology Stack': 'HTTP', 'Port Scan Full': 'NMAP', 'Subdomain Takeover': 'VULN',
 };
 
 const SkullSVG = () => (
@@ -311,6 +332,10 @@ export default function ReconApp() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState(null);
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [parallelMode, setParallelMode] = useState(false);
+  const [toolCategories, setToolCategories] = useState({});
 
   const { currentTheme, updateCursorTheme } = useCursorTheme();
 
@@ -325,6 +350,29 @@ export default function ReconApp() {
   }, [recentActivity]);
 
   useEffect(() => {
+    const cursor = document.getElementById('custom-cursor');
+    if (!cursor) return;
+    const move = (e) => {
+      cursor.style.left = e.clientX - 20 + 'px';
+      cursor.style.top = e.clientY - 20 + 'px';
+    };
+    const over = () => { cursor.style.transform = 'scale(1.8)'; };
+    const out = () => { cursor.style.transform = 'scale(1)'; };
+    document.addEventListener('mousemove', move);
+    document.querySelectorAll('.tool-card, .nav-item, .execute-btn, .new-scan-btn, .activity-item').forEach(el => {
+      el.addEventListener('mouseenter', over);
+      el.addEventListener('mouseleave', out);
+    });
+    return () => {
+      document.removeEventListener('mousemove', move);
+      document.querySelectorAll('.tool-card, .nav-item, .execute-btn, .new-scan-btn, .activity-item').forEach(el => {
+        el.removeEventListener('mouseenter', over);
+        el.removeEventListener('mouseleave', out);
+      });
+    };
+  }, []);
+
+  useEffect(() => {
     const fetchTools = async () => {
       try {
         const response = await fetch(`${API_BASE}/tools?type=${encodeURIComponent(targetType)}`);
@@ -335,6 +383,7 @@ export default function ReconApp() {
         }
         const data = await response.json();
         setAvailableTools(data.tools || []);
+        setToolCategories(data.categories || {});
         if (settings.autoSelectAll) {
           setSelectedTools([...(data.tools || [])]);
         } else {
@@ -397,16 +446,28 @@ export default function ReconApp() {
   const handleSelectAll = () => setSelectedTools([...availableTools]);
   const handleClearAll = () => setSelectedTools([]);
 
+  const handleProfileSelect = (profileKey) => {
+    setSelectedProfile(profileKey);
+    setSelectedTools([]);
+    setActiveCategory('All');
+  };
+
   const handleStartScan = async () => {
     setError('');
     if (!target.trim()) { setError('Please enter a target'); return; }
-    if (selectedTools.length === 0) { setError('Please select at least one tool'); return; }
+    if (selectedTools.length === 0 && !selectedProfile) { setError('Please select at least one tool or profile'); return; }
     try {
       setScanning(true);
       const response = await fetch(`${API_BASE}/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ target: target.trim(), target_type: targetType, tools: selectedTools }),
+        body: JSON.stringify({
+          target: target.trim(),
+          target_type: targetType,
+          tools: selectedTools,
+          profile: selectedProfile,
+          parallel: parallelMode
+        }),
       });
       const data = await response.json();
       if (!response.ok) { setError(data.error || 'Failed to start scan'); setScanning(false); return; }
@@ -449,6 +510,14 @@ export default function ReconApp() {
     setError('');
     setActiveNav('Dashboard');
     setSidebarOpen(false);
+    setSelectedProfile(null);
+    setActiveCategory('All');
+    setParallelMode(false);
+  };
+
+  const getFilteredTools = () => {
+    if (activeCategory === 'All') return availableTools;
+    return availableTools.filter(tool => toolCategories[activeCategory]?.includes(tool));
   };
 
   const renderDashboard = () => (
@@ -458,7 +527,7 @@ export default function ReconApp() {
         <div className="scan-input-row">
           <select
             value={targetType}
-            onChange={(e) => setTargetType(e.target.value)}
+            onChange={(e) => { setTargetType(e.target.value); setSelectedProfile(null); }}
             className="scan-input scan-type-select"
             disabled={scanning}
           >
@@ -485,29 +554,96 @@ export default function ReconApp() {
           </button>
         </div>
         {error && <div className="error-msg">{error}</div>}
+
+        <div className="scan-options-row">
+          <label className="scan-option">
+            <input
+              type="checkbox"
+              checked={parallelMode}
+              onChange={(e) => setParallelMode(e.target.checked)}
+              disabled={scanning}
+            />
+            <span>Parallel Execution</span>
+          </label>
+          {selectedProfile && (
+            <span className="profile-badge">Profile: {SCAN_PROFILES[selectedProfile]?.name}</span>
+          )}
+          {selectedTools.length > 0 && (
+            <span className="tool-count-badge">{selectedTools.length} tools selected</span>
+          )}
+        </div>
       </div>
+
+      {targetType === 'Domain/IP' && (
+        <div className="profiles-section">
+          <h2>Scan Profiles</h2>
+          <p className="profiles-subtitle">Quick presets for common reconnaissance tasks</p>
+          <div className="profiles-grid">
+            {Object.entries(SCAN_PROFILES).map(([key, profile]) => (
+              <button
+                key={key}
+                className={`profile-card ${selectedProfile === key ? 'selected' : ''}`}
+                onClick={() => handleProfileSelect(key)}
+                disabled={scanning}
+                style={{ '--profile-color': profile.color }}
+              >
+                <span className="profile-icon">{profile.icon}</span>
+                <span className="profile-name">{profile.name}</span>
+                <span className="profile-desc">{profile.description}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="module-config">
         <div className="module-header">
           <div>
             <h2>Module Configuration</h2>
             <p className="module-subtitle">
-              Select the reconnaissance vectors for this operation.
-              {selectedTools.length > 0 && (
+              {selectedProfile
+                ? `Using ${SCAN_PROFILES[selectedProfile]?.name} profile — or customize below`
+                : 'Select the reconnaissance vectors for this operation'}
+              {selectedTools.length > 0 && !selectedProfile && (
                 <span className="tool-count-badge"> {selectedTools.length} of {availableTools.length} selected</span>
               )}
             </p>
           </div>
           <div className="module-actions">
-            <button className="action-btn select-all" onClick={handleSelectAll}>Select ALL</button>
-            <button className="action-btn" onClick={handleClearAll}>Clear</button>
+            {!selectedProfile && (
+              <>
+                <button className="action-btn select-all" onClick={handleSelectAll}>Select ALL</button>
+                <button className="action-btn" onClick={handleClearAll}>Clear</button>
+              </>
+            )}
           </div>
         </div>
+
+        {Object.keys(toolCategories).length > 0 && targetType === 'Domain/IP' && (
+          <div className="category-tabs">
+            <button
+              className={`category-tab ${activeCategory === 'All' ? 'active' : ''}`}
+              onClick={() => setActiveCategory('All')}
+            >
+              All ({availableTools.length})
+            </button>
+            {Object.entries(toolCategories).map(([cat, tools]) => (
+              <button
+                key={cat}
+                className={`category-tab ${activeCategory === cat ? 'active' : ''}`}
+                onClick={() => setActiveCategory(cat)}
+              >
+                {cat} ({tools.length})
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className={`tools-grid ${settings.compactMode ? 'compact' : ''}`}>
-          {availableTools.map((tool) => (
+          {getFilteredTools().map((tool) => (
             <div
               key={tool}
-              className={`tool-card ${selectedTools.includes(tool) ? 'selected' : ''}`}
+              className={`tool-card ${selectedTools.includes(tool) ? 'selected' : ''} ${selectedProfile ? 'has-profile' : ''}`}
               onClick={() => handleToolToggle(tool)}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleToolToggle(tool); }}}
               role="button"
@@ -640,6 +776,7 @@ export default function ReconApp() {
 
   return (
     <div className="recon-app">
+      <div className="custom-cursor" id="custom-cursor" />
       {/* SIDEBAR OVERLAY (mobile) */}
       <div
         className={`sidebar-overlay ${sidebarOpen ? 'visible' : ''}`}

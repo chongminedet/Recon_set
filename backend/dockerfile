@@ -65,6 +65,13 @@ RUN wget -q https://github.com/OJ/gobuster/releases/download/v3.8.2/gobuster_Lin
     && chmod +x /usr/local/bin/gobuster \
     && rm gobuster_Linux_x86_64.tar.gz
 
+# Install nuclei
+RUN wget -q https://github.com/projectdiscovery/nuclei/releases/download/v3.3.7/nuclei_3.3.7_linux_amd64.zip \
+    && unzip -o nuclei_3.3.7_linux_amd64.zip -d /tmp/nuclei \
+    && mv /tmp/nuclei/nuclei /usr/local/bin/ \
+    && chmod +x /usr/local/bin/nuclei \
+    && rm -rf /tmp/nuclei nuclei_3.3.7_linux_amd64.zip
+
 # Install theHarvester from source (pip package is a dummy)
 RUN git clone --depth 1 https://github.com/laramies/theHarvester.git /opt/theHarvester \
     && cd /opt/theHarvester \
@@ -87,4 +94,4 @@ RUN mkdir -p /app/recon_results
 
 EXPOSE 5000
 
-CMD ["python", "app.py"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "300", "app:app"]

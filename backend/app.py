@@ -10,6 +10,7 @@ import uuid
 import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import logging
 
 app = Flask(__name__)
@@ -64,11 +65,26 @@ def init_visits_db():
         c.execute('CREATE INDEX IF NOT EXISTS idx_timestamp ON visits(timestamp)')
         c.execute('CREATE INDEX IF NOT EXISTS idx_ip ON visits(ip)')
         c.execute('CREATE INDEX IF NOT EXISTS idx_session ON visits(session_id)')
+        c.execute('''CREATE TABLE IF NOT EXISTS scans (
+            id TEXT PRIMARY KEY,
+            target TEXT,
+            target_type TEXT,
+            tools TEXT,
+            status TEXT,
+            progress INTEGER,
+            results TEXT,
+            started_at TEXT,
+            completed_at TEXT,
+            parallel INTEGER,
+            profile TEXT
+        )''')
+        c.execute('CREATE INDEX IF NOT EXISTS idx_scan_target ON scans(target)')
+        c.execute('CREATE INDEX IF NOT EXISTS idx_scan_status ON scans(status)')
         conn.commit()
         conn.close()
-        logger.info("Visits database initialized")
+        logger.info("Database initialized")
     except Exception as e:
-        logger.error(f"Failed to initialize visits database: {str(e)}")
+        logger.error(f"Failed to initialize database: {str(e)}")
 
 def log_visit():
     """Log a visit to the database"""
@@ -119,7 +135,9 @@ class ScanManager:
             "progress": 0,
             "results": {},
             "started_at": datetime.now().isoformat(),
-            "completed_at": None
+            "completed_at": None,
+            "parallel": False,
+            "profile": None
         }
         return scan_id
 
@@ -135,6 +153,7 @@ class ScanManager:
                 completed = len([r for r in self.scans[scan_id]["results"].values() if r])
                 total = len(self.scans[scan_id]["tools"])
                 self.scans[scan_id]["progress"] = int((completed / total) * 100) if total > 0 else 0
+                self._save_scan(scan_id)
 
     def mark_complete(self, scan_id):
         """Mark scan as completed"""
@@ -142,6 +161,49 @@ class ScanManager:
             if scan_id in self.scans:
                 self.scans[scan_id]["status"] = "completed"
                 self.scans[scan_id]["completed_at"] = datetime.now().isoformat()
+                self._save_scan(scan_id)
+
+    def _save_scan(self, scan_id):
+        """Save scan to database"""
+        try:
+            scan = self.scans.get(scan_id)
+            if not scan:
+                return
+            conn = sqlite3.connect(str(VISITS_DB))
+            c = conn.cursor()
+            c.execute('''INSERT OR REPLACE INTO scans 
+                (id, target, target_type, tools, status, progress, results, started_at, completed_at, parallel, profile)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                (scan['id'], scan['target'], scan['target_type'],
+                 json.dumps(scan['tools']), scan['status'], scan['progress'],
+                 json.dumps(scan['results']), scan['started_at'],
+                 scan.get('completed_at'), scan.get('parallel', False),
+                 scan.get('profile')))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            logger.error(f"Failed to save scan: {str(e)}")
+
+    def get_history(self, limit=50):
+        """Get scan history from database"""
+        try:
+            conn = sqlite3.connect(str(VISITS_DB))
+            c = conn.cursor()
+            c.execute('SELECT * FROM scans ORDER BY started_at DESC LIMIT ?', (limit,))
+            rows = c.fetchall()
+            conn.close()
+            scans = []
+            for row in rows:
+                scans.append({
+                    "id": row[0], "target": row[1], "target_type": row[2],
+                    "tools": json.loads(row[3]), "status": row[4], "progress": row[5],
+                    "results": json.loads(row[6]), "started_at": row[7],
+                    "completed_at": row[8], "parallel": row[9], "profile": row[10]
+                })
+            return scans
+        except Exception as e:
+            logger.error(f"Failed to get history: {str(e)}")
+            return []
 
 scan_manager = ScanManager()
 
@@ -198,6 +260,43 @@ def validate_target(target, target_type):
         return bool(re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', target))
     return False
 
+SCAN_PROFILES = {
+    "quick": {
+        "name": "Quick Scan",
+        "description": "Fast reconnaissance - essential tools only (~2 min)",
+        "tools": ["WHOIS", "DNS", "HTTP Headers", "Nmap Basic", "WhatWeb"]
+    },
+    "standard": {
+        "name": "Standard Scan",
+        "description": "Balanced recon - good coverage (~5 min)",
+        "tools": ["WHOIS", "DNS", "DNS (Full)", "TLS Certificate", "HTTP Headers", "Nmap Basic", "WhatWeb", "WAFW00F", "Subfinder", "HTTPx"]
+    },
+    "deep": {
+        "name": "Deep Scan",
+        "description": "Comprehensive recon - all tools (~15 min)",
+        "tools": [
+            "WHOIS", "DNS", "DNS (Full)", "Reverse DNS", "TLS Certificate", "HTTP Headers",
+            "Nmap Basic", "Nmap Aggressive", "DNS Zone Transfer", "Subfinder", "WhatWeb",
+            "WAFW00F", "Nikto", "Gobuster Dir", "Gobuster DNS", "FFUF", "HTTPx", "Masscan"
+        ]
+    },
+    "vuln": {
+        "name": "Vulnerability Scan",
+        "description": "Focus on vulnerabilities and misconfigurations (~10 min)",
+        "tools": ["Nmap Aggressive", "Nikto", "WhatWeb", "WAFW00F", "SSL Scan", "Nmap Vuln Scripts"]
+    },
+    "osint": {
+        "name": "OSINT Scan",
+        "description": "Open source intelligence gathering (~5 min)",
+        "tools": ["WHOIS", "DNS", "Subfinder", "theHarvester", "Sherlock", "Maigret", "Holehe"]
+    },
+    "web": {
+        "name": "Web App Scan",
+        "description": "Web application focused recon (~8 min)",
+        "tools": ["HTTP Headers", "TLS Certificate", "WhatWeb", "WAFW00F", "Nikto", "Gobuster Dir", "FFUF", "HTTPx"]
+    }
+}
+
 def execute_tool(tool, target):
     """Execute a specific reconnaissance tool"""
     commands = {
@@ -209,6 +308,7 @@ def execute_tool(tool, target):
         "HTTP Headers": f"curl -I -sS --max-time 10 https://{target} 2>&1 || curl -I -sS --max-time 10 http://{target} 2>&1",
         "Nmap Basic": f"nmap -sV -Pn -p 1-1000 --max-rate 100 --open {target}",
         "Nmap Aggressive": f"nmap -sV -Pn -p 1-1000 --script default,vuln --max-rate 200 --open --host-timeout 300s {target}",
+        "Nmap Vuln Scripts": f"nmap -sV -Pn --script vuln --open {target}",
         "DNS Zone Transfer": f"echo 'Attempting zone transfer from {target}...' && dig @{target} axfr +noall +answer 2>&1 || echo 'Zone transfer failed — server does not allow AXFR (this is expected for most servers)'",
         "Sherlock": f"sherlock {target} --timeout 1 2>/dev/null",
         "Subfinder": f"subfinder -d {target} -silent",
@@ -223,6 +323,13 @@ def execute_tool(tool, target):
         "HTTPx": f"echo {target} | httpx --silent -title -tech-detect -status-code 2>&1",
         "Masscan": f"target_ip=$(dig +short {target} | head -1); if [ -z \"$target_ip\" ]; then echo 'Could not resolve {target} to IP'; else masscan $target_ip -p1-10000 --rate=1000 --open; fi",
         "Maigret": f"maigret {target}",
+        "SSL Scan": f"echo | timeout 15 openssl s_client -connect {target}:443 -servername {target} 2>/dev/null | openssl x509 -noout -dates -subject -issuer 2>/dev/null; echo '---'; nmap --script ssl-enum-ciphers -p 443 {target} 2>&1 || echo 'SSL scan completed'",
+        "Nuclei": f"nuclei -u {target} -silent -severity low,medium,high,critical 2>&1 | head -100",
+        "CORS Test": f"curl -sS -I -H 'Origin: https://evil.com' https://{target} 2>&1 | grep -i 'access-control-allow-origin' || echo 'No CORS header found'",
+        "Security Headers": f"curl -sS -I https://{target} 2>&1 | grep -iE '(strict-transport|x-frame|x-content-type|x-xss|content-security|referrer-policy|permissions-policy)' || echo 'No security headers found'",
+        "Technology Stack": f"whatweb {target} --color=never 2>&1; echo '---'; wappalyzer {target} 2>&1 || echo 'Wappalyzer not available'",
+        "Port Scan Full": f"nmap -sV -Pn -p- --min-rate 5000 --open {target}",
+        "Subdomain Takeover": f"echo 'Checking {target} for subdomain takeover...' && subfinder -d {target} -silent | httpx --silent -status-code -title 2>&1 | grep -E '(404|CNAME|Not Found)' || echo 'No obvious takeover found'",
     }
 
     if tool not in commands:
@@ -233,6 +340,8 @@ def execute_tool(tool, target):
     timeout_map = {
         "Nmap Aggressive": 900,
         "Nmap Basic": 600,
+        "Nmap Vuln Scripts": 900,
+        "Nmap Full": 900,
         "Nikto": 300,
         "Gobuster Dir": 300,
         "Gobuster DNS": 300,
@@ -253,6 +362,13 @@ def execute_tool(tool, target):
         "Subfinder": 180,
         "WhatWeb": 120,
         "WAFW00F": 120,
+        "SSL Scan": 120,
+        "Nuclei": 300,
+        "CORS Test": 30,
+        "Security Headers": 30,
+        "Technology Stack": 120,
+        "Port Scan Full": 600,
+        "Subdomain Takeover": 300,
     }
     timeout = timeout_map.get(tool, 120)
 
@@ -371,37 +487,19 @@ def get_tools():
 
     tools_by_type = {
         "Domain/IP": [
-            "WHOIS",
-            "DNS",
-            "DNS (Full)",
-            "Reverse DNS",
-            "TLS Certificate",
-            "HTTP Headers",
-            "Nmap Basic",
-            "Nmap Aggressive",
-            "DNS Zone Transfer",
-            "Subfinder",
-            "WhatWeb",
-            "WAFW00F",
-            "Nikto",
-            "Gobuster Dir",
-            "Gobuster DNS",
-            "FFUF",
-            "HTTPx",
-            "Masscan"
+            "WHOIS", "DNS", "DNS (Full)", "Reverse DNS", "TLS Certificate", "HTTP Headers",
+            "Nmap Basic", "Nmap Aggressive", "Nmap Vuln Scripts", "DNS Zone Transfer",
+            "Subfinder", "WhatWeb", "WAFW00F", "Nikto", "Gobuster Dir", "Gobuster DNS",
+            "FFUF", "HTTPx", "Masscan", "SSL Scan", "Nuclei", "CORS Test",
+            "Security Headers", "Technology Stack", "Port Scan Full", "Subdomain Takeover"
         ],
-        "Username": [
-            "Sherlock",
-            "Maigret"
-        ],
-        "Email": [
-            "theHarvester",
-            "Holehe"
-        ]
+        "Username": ["Sherlock", "Maigret"],
+        "Email": ["theHarvester", "Holehe"]
     }
 
     return jsonify({
         "tools": tools_by_type.get(target_type, []),
+        "profiles": SCAN_PROFILES,
         "descriptions": {
             "WHOIS": "Retrieve domain/IP registration details",
             "DNS": "Quick DNS lookup",
@@ -411,6 +509,7 @@ def get_tools():
             "HTTP Headers": "Retrieve HTTP response headers",
             "Nmap Basic": "Basic network scanning with service detection",
             "Nmap Aggressive": "Aggressive Nmap scan with OS detection",
+            "Nmap Vuln Scripts": "Nmap vulnerability scripts (vuln category)",
             "DNS Zone Transfer": "Attempt DNS zone transfer (AXFR)",
             "Sherlock": "Search usernames across social media platforms",
             "Subfinder": "Passive subdomain enumeration using multiple sources",
@@ -424,18 +523,44 @@ def get_tools():
             "HTTPx": "HTTP probing with title, tech detection, status codes",
             "Masscan": "High-speed port scanner (top 10000 ports)",
             "Maigret": "Advanced username OSINT across 3000+ sites",
-            "Holehe": "Check if email is registered on 100+ websites"
+            "Holehe": "Check if email is registered on 100+ websites",
+            "SSL Scan": "SSL/TLS cipher and certificate analysis",
+            "Nuclei": "Template-based vulnerability scanner",
+            "CORS Test": "Test for misconfigured CORS policies",
+            "Security Headers": "Check for security header presence",
+            "Technology Stack": "Identify full technology stack",
+            "Port Scan Full": "Full 65535 port scan",
+            "Subdomain Takeover": "Check for subdomain takeover vulnerabilities"
+        },
+        "categories": {
+            "Recon": ["WHOIS", "DNS", "DNS (Full)", "Reverse DNS", "Subfinder", "DNS Zone Transfer"],
+            "Web": ["HTTP Headers", "TLS Certificate", "WhatWeb", "WAFW00F", "Nikto", "HTTPx", "SSL Scan", "Security Headers", "Technology Stack", "CORS Test"],
+            "Vuln": ["Nmap Aggressive", "Nmap Vuln Scripts", "Nikto", "Nuclei", "Subdomain Takeover"],
+            "Brute Force": ["Gobuster Dir", "Gobuster DNS", "FFUF", "Masscan", "Port Scan Full"],
+            "OSINT": ["Sherlock", "Maigret", "theHarvester", "Holehe"],
+            "Nmap": ["Nmap Basic", "Nmap Aggressive", "Nmap Vuln Scripts", "Masscan", "Port Scan Full"]
         }
     })
 
+@app.route("/api/scan/profiles", methods=["GET"])
+@limiter.limit("500 per hour")
+def get_scan_profiles():
+    """Get available scan profiles"""
+    return jsonify({"profiles": SCAN_PROFILES})
+
 @app.route("/api/scan", methods=["POST"])
-@limiter.limit("500 per hour")  # Increased from 100 - allows ~8 scans per minute
+@limiter.limit("500 per hour")
 def start_scan():
     """Start a new reconnaissance scan"""
     data = request.json
     target = data.get("target", "").strip()
     target_type = data.get("target_type", "Domain/IP")
     tools = data.get("tools", [])
+    profile = data.get("profile", None)
+    parallel = data.get("parallel", False)
+
+    if profile and profile in SCAN_PROFILES:
+        tools = SCAN_PROFILES[profile]["tools"]
 
     if not target or not validate_target(target, target_type):
         return jsonify({"error": "Invalid target"}), 400
@@ -443,14 +568,15 @@ def start_scan():
     if not tools or len(tools) == 0:
         return jsonify({"error": "Select at least one tool"}), 400
 
-    if len(tools) > 10:
-        return jsonify({"error": "Maximum 10 tools per scan"}), 400
+    if len(tools) > 30:
+        return jsonify({"error": "Maximum 30 tools per scan"}), 400
 
     scan_id = scan_manager.create_scan(target, target_type, tools)
+    scan_manager.scans[scan_id]["parallel"] = parallel
 
     thread = threading.Thread(
         target=run_scan,
-        args=(scan_id, target, tools),
+        args=(scan_id, target, tools, parallel),
         daemon=True
     )
     thread.start()
@@ -458,7 +584,9 @@ def start_scan():
     return jsonify({
         "scan_id": scan_id,
         "status": "started",
-        "message": f"Scan started for {target}"
+        "message": f"Scan started for {target}",
+        "profile": profile,
+        "parallel": parallel
     })
 
 @app.route("/api/scan/<scan_id>", methods=["GET"])
@@ -483,7 +611,16 @@ def cancel_scan(scan_id):
         return jsonify({"error": "Scan already finished"}), 400
     scan["status"] = "cancelled"
     scan["completed_at"] = datetime.now().isoformat()
+    scan_manager._save_scan(scan_id)
     return jsonify({"status": "cancelled"})
+
+@app.route("/api/scan/history", methods=["GET"])
+@limiter.limit("500 per hour")
+def get_scan_history():
+    """Get scan history"""
+    limit = request.args.get("limit", 50, type=int)
+    history = scan_manager.get_history(limit=limit)
+    return jsonify({"history": history})
 
 @app.route("/api/scan/<scan_id>/export", methods=["GET"])
 @limiter.limit("500 per hour")  # Reasonable limit for exports
@@ -529,7 +666,7 @@ def export_scan(scan_id):
 
     return send_file(filepath, as_attachment=True, download_name=filename)
 
-def run_scan(scan_id, target, tools):
+def run_scan(scan_id, target, tools, parallel=False):
     """Execute scan in background thread"""
     try:
         scan = scan_manager.get_scan(scan_id)
@@ -545,20 +682,42 @@ def run_scan(scan_id, target, tools):
             domain_target = parts[1]
 
         username_tools = {"Sherlock", "Maigret"}
-
         email_tools = {"Holehe"}
 
-        for i, tool in enumerate(tools):
+        def get_tool_target(tool):
             if target_type == "Email" and tool in email_tools:
-                result = execute_tool(tool, target)
+                return target
             elif target_type == "Email" and tool in username_tools:
-                result = execute_tool(tool, username_target)
+                return username_target
             elif target_type == "Email":
-                result = execute_tool(tool, domain_target)
-            else:
-                result = execute_tool(tool, target)
-            scan_manager.update_progress(scan_id, tool, result)
-            logger.info(f"[{scan_id}] Completed {tool} ({i+1}/{len(tools)})")
+                return domain_target
+            return target
+
+        if parallel:
+            max_workers = min(5, len(tools))
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                future_to_tool = {}
+                for tool in tools:
+                    tool_target = get_tool_target(tool)
+                    future = executor.submit(execute_tool, tool, tool_target)
+                    future_to_tool[future] = tool
+
+                completed = 0
+                for future in as_completed(future_to_tool):
+                    tool = future_to_tool[future]
+                    try:
+                        result = future.result()
+                    except Exception as e:
+                        result = {"error": str(e), "failed": True, "stdout": "", "stderr": "", "returncode": -1}
+                    scan_manager.update_progress(scan_id, tool, result)
+                    completed += 1
+                    logger.info(f"[{scan_id}] Completed {tool} ({completed}/{len(tools)})")
+        else:
+            for i, tool in enumerate(tools):
+                tool_target = get_tool_target(tool)
+                result = execute_tool(tool, tool_target)
+                scan_manager.update_progress(scan_id, tool, result)
+                logger.info(f"[{scan_id}] Completed {tool} ({i+1}/{len(tools)})")
 
         scan_manager.mark_complete(scan_id)
         logger.info(f"[{scan_id}] Scan complete")
@@ -692,5 +851,5 @@ def admin_stats_api():
     return get_stats()
 
 if __name__ == "__main__":
-    logger.info("Starting Recon-as-a-Service")
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    logger.info("Starting Recon-as-a-Service (development mode)")
+    app.run(debug=False, host="0.0.0.0", port=5000)
