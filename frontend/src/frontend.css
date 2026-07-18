@@ -164,8 +164,8 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: v
   pointer-events: none;
   z-index: 99999;
   transition: transform 0.15s ease;
-  background: url('/cursor.jpg') center/cover no-repeat;
-  mix-blend-mode: difference;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  mix-blend-mode: screen;
 }
 
 .recon-app { display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
