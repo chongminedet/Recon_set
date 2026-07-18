@@ -25,12 +25,12 @@ const TOOL_ICONS = {
 };
 
 const SCAN_PROFILES = {
-  quick: { name: 'Quick Scan', icon: '⚡', color: '#00ff88', description: '~2 min' },
-  standard: { name: 'Standard Scan', icon: '🔍', color: '#00d4ff', description: '~5 min' },
-  deep: { name: 'Deep Scan', icon: '🔬', color: '#ff6b6b', description: '~15 min' },
-  vuln: { name: 'Vulnerability', icon: '🛡', color: '#ffd93d', description: '~10 min' },
-  osint: { name: 'OSINT', icon: '🕵', color: '#c084fc', description: '~5 min' },
-  web: { name: 'Web App', icon: '🌐', color: '#22d3ee', description: '~8 min' },
+  quick: { name: 'Quick Scan', icon: '⚡', color: '#00ff88', description: '~2 min', tools: ['WHOIS', 'DNS', 'HTTP Headers', 'Nmap Basic', 'WhatWeb'] },
+  standard: { name: 'Standard Scan', icon: '🔍', color: '#00d4ff', description: '~5 min', tools: ['WHOIS', 'DNS', 'DNS (Full)', 'TLS Certificate', 'HTTP Headers', 'Nmap Basic', 'WhatWeb', 'WAFW00F', 'Subfinder', 'HTTPx'] },
+  deep: { name: 'Deep Scan', icon: '🔬', color: '#ff6b6b', description: '~15 min', tools: ['WHOIS', 'DNS', 'DNS (Full)', 'Reverse DNS', 'TLS Certificate', 'HTTP Headers', 'Nmap Basic', 'Nmap Aggressive', 'DNS Zone Transfer', 'Subfinder', 'WhatWeb', 'WAFW00F', 'Nikto', 'Gobuster Dir', 'Gobuster DNS', 'FFUF', 'HTTPx', 'Masscan'] },
+  vuln: { name: 'Vulnerability', icon: '🛡', color: '#ffd93d', description: '~10 min', tools: ['Nmap Aggressive', 'Nikto', 'WhatWeb', 'WAFW00F', 'SSL Scan', 'Nmap Vuln Scripts'] },
+  osint: { name: 'OSINT', icon: '🕵', color: '#c084fc', description: '~5 min', tools: ['WHOIS', 'DNS', 'Subfinder', 'theHarvester', 'Sherlock', 'Maigret', 'Holehe'] },
+  web: { name: 'Web App', icon: '🌐', color: '#22d3ee', description: '~8 min', tools: ['HTTP Headers', 'TLS Certificate', 'WhatWeb', 'WAFW00F', 'Nikto', 'Gobuster Dir', 'FFUF', 'HTTPx'] },
 };
 
 // SVG Icon Components
@@ -471,18 +471,25 @@ export default function ReconApp() {
   }, [recentActivity, searchQuery]);
 
   const handleToolToggle = (tool) => {
-    setSelectedTools((prev) =>
-      prev.includes(tool) ? prev.filter((t) => t !== tool) : [...prev, tool]
-    );
+    setSelectedTools((prev) => {
+      const next = prev.includes(tool) ? prev.filter((t) => t !== tool) : [...prev, tool];
+      return next;
+    });
+    setSelectedProfile(null);
   };
 
-  const handleSelectAll = () => setSelectedTools([...availableTools]);
-  const handleClearAll = () => setSelectedTools([]);
+  const handleSelectAll = () => { setSelectedTools([...availableTools]); setSelectedProfile(null); };
+  const handleClearAll = () => { setSelectedTools([]); setSelectedProfile(null); };
 
   const handleProfileSelect = (profileKey) => {
-    setSelectedProfile(profileKey);
-    setSelectedTools([]);
-    setActiveCategory('All');
+    if (selectedProfile === profileKey) {
+      setSelectedProfile(null);
+      setSelectedTools([]);
+    } else {
+      setSelectedProfile(profileKey);
+      setSelectedTools([...SCAN_PROFILES[profileKey].tools]);
+      setActiveCategory('All');
+    }
   };
 
   const handleStartScan = async () => {
@@ -626,7 +633,10 @@ export default function ReconApp() {
             <span>Parallel Execution</span>
           </label>
           {selectedProfile && (
-            <span className="profile-badge">Profile: {SCAN_PROFILES[selectedProfile]?.name}</span>
+            <span className="profile-badge">
+              Profile: {SCAN_PROFILES[selectedProfile]?.name}
+              <button className="profile-badge-clear" onClick={() => { setSelectedProfile(null); setSelectedTools([]); }} aria-label="Clear profile">✕</button>
+            </span>
           )}
           {selectedTools.length > 0 && (
             <span className="tool-count-badge">{selectedTools.length} tools selected</span>
