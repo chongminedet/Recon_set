@@ -58,6 +58,38 @@
 - **Removed dead code** — deleted unused THEMES constant from frontend.jsx
 - **Activity tags** — shows "+N more" when tools exceed 3
 
+## Fixes Applied (audit session - 77 issues)
+### Backend
+- **Scan history auth** — added @require_stats_auth to /api/scan/history endpoint
+- **Gobuster Dir** — removed --wildcard flag (removed in gobuster 3.2+)
+- **theHarvester** — fixed to use CLI entry point instead of python script path
+- **HTTPx** — changed --silent to -silent (correct flag syntax)
+- **Subdomain Takeover** — fixed httpx --silent to -silent
+- **Target scheme stripping** — added regex to strip https:// prefix before URL interpolation
+- **Gobuster wordlist** — changed to /usr/share/wordlists/dirb/common.txt
+- **Technology Stack** — wrapped wappalyzer in proper command -v check
+- **Sherlock timeout** — changed from 1s to 10s (was too aggressive)
+
+### Nginx
+- **server_tokens off** — hides nginx version in response headers
+
+### Frontend
+- **Polling fix** — removed selectedTools from useEffect deps (was resetting interval on tool toggle)
+- **Polling null checks** — added response.ok and data.status checks to prevent crashes
+- **Export fix** — added response.ok check before downloading blob
+- **Object URL cleanup** — added URL.revokeObjectURL after download
+- **Cancel button** — added dedicated Cancel button during active scan
+- **Scan notification** — added success notification when scan completes
+- **Loading spinner** — added spinner when tools are being fetched
+- **Retry button** — added retry button when scan fails
+- **ARIA attributes** — added role="switch", aria-checked, aria-label to toggles
+- **Search icon** — added role="button", tabIndex, aria-label for keyboard access
+- **Error role** — added role="alert" to error messages
+- **Cursor throttling** — wrapped mousemove in requestAnimationFrame
+- **Cursor cleanup** — cached NodeList for cleanup instead of re-querying
+- **Memoized getFilteredTools** — converted to useMemo to prevent unnecessary re-renders
+- **Duplicate CSS import** — removed redundant import from index.js
+
 ## Git History Notes
 - Rebase was messy — two diverged branches from 17042cd with README.md conflict
 - Screenshot files must NEVER be committed

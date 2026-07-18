@@ -299,37 +299,40 @@ SCAN_PROFILES = {
 
 def execute_tool(tool, target):
     """Execute a specific reconnaissance tool"""
+    import re as _re
+    clean_target = _re.sub(r'^https?://', '', target).rstrip('/')
+
     commands = {
-        "WHOIS": f"whois {target}",
-        "DNS": f"dig {target} +short A; dig {target} +short MX; dig {target} +short NS; dig {target} +short TXT",
-        "DNS (Full)": f"dig {target} A +noall +answer; dig {target} MX +noall +answer; dig {target} NS +noall +answer; dig {target} TXT +noall +answer",
-        "Reverse DNS": f"dig -x {target} +short || echo 'No PTR record found for {target}'",
-        "TLS Certificate": f"echo | timeout 10 openssl s_client -connect {target}:443 -servername {target} 2>/dev/null | openssl x509 -noout -text 2>/dev/null || echo 'Could not retrieve TLS certificate from {target}:443 — target may not have HTTPS'",
-        "HTTP Headers": f"curl -I -sS --max-time 10 https://{target} 2>&1 || curl -I -sS --max-time 10 http://{target} 2>&1",
-        "Nmap Basic": f"nmap -sV -Pn -p 1-1000 --max-rate 100 --open {target}",
-        "Nmap Aggressive": f"nmap -sV -Pn -p 1-1000 --script default,vuln --max-rate 200 --open --host-timeout 300s {target}",
-        "Nmap Vuln Scripts": f"nmap -sV -Pn --script vuln --open {target}",
-        "DNS Zone Transfer": f"echo 'Attempting zone transfer from {target}...' && dig @{target} axfr +noall +answer 2>&1 || echo 'Zone transfer failed — server does not allow AXFR (this is expected for most servers)'",
-        "Sherlock": f"sherlock {target} --timeout 1 2>/dev/null",
-        "Subfinder": f"subfinder -d {target} -silent",
-        "theHarvester": f"cd /opt/theHarvester && python theHarvester/theHarvester.py -d {target} -b crtsh,bing,duckduckgo -l 200 2>&1",
-        "Holehe": f"holehe {target}",
-        "WhatWeb": f"whatweb {target} -a 3 --color=never",
-        "WAFW00F": f"wafw00f {target}",
-        "Nikto": f"nikto -h {target} -maxtime 180s",
-        "Gobuster Dir": f"gobuster dir -u https://{target} -w /usr/share/wordlists/common.txt -q --wildcard -t 50 2>&1",
-        "Gobuster DNS": f"gobuster dns --domain {target} -w /usr/share/wordlists/common.txt -q -t 50 2>&1",
-        "FFUF": f"ffuf -u https://{target}/FUZZ -w /usr/share/wordlists/common.txt -mc 200,301,302,403 -fs 0 -s 2>&1",
-        "HTTPx": f"echo {target} | httpx --silent -title -tech-detect -status-code 2>&1",
-        "Masscan": f"target_ip=$(dig +short {target} | head -1); if [ -z \"$target_ip\" ]; then echo 'Could not resolve {target} to IP'; else masscan $target_ip -p1-10000 --rate=1000 --open; fi",
-        "Maigret": f"maigret {target}",
-        "SSL Scan": f"echo | timeout 15 openssl s_client -connect {target}:443 -servername {target} 2>/dev/null | openssl x509 -noout -dates -subject -issuer 2>/dev/null; echo '---'; nmap --script ssl-enum-ciphers -p 443 {target} 2>&1 || echo 'SSL scan completed'",
-        "Nuclei": f"nuclei -u {target} -silent -severity low,medium,high,critical 2>&1 | head -100",
-        "CORS Test": f"curl -sS -I -H 'Origin: https://evil.com' https://{target} 2>&1 | grep -i 'access-control-allow-origin' || echo 'No CORS header found'",
-        "Security Headers": f"curl -sS -I https://{target} 2>&1 | grep -iE '(strict-transport|x-frame|x-content-type|x-xss|content-security|referrer-policy|permissions-policy)' || echo 'No security headers found'",
-        "Technology Stack": f"whatweb {target} --color=never 2>&1; echo '---'; wappalyzer {target} 2>&1 || echo 'Wappalyzer not available'",
-        "Port Scan Full": f"nmap -sV -Pn -p- --min-rate 5000 --open {target}",
-        "Subdomain Takeover": f"echo 'Checking {target} for subdomain takeover...' && subfinder -d {target} -silent | httpx --silent -status-code -title 2>&1 | grep -E '(404|CNAME|Not Found)' || echo 'No obvious takeover found'",
+        "WHOIS": f"whois {clean_target}",
+        "DNS": f"dig {clean_target} +short A; dig {clean_target} +short MX; dig {clean_target} +short NS; dig {clean_target} +short TXT",
+        "DNS (Full)": f"dig {clean_target} A +noall +answer; dig {clean_target} MX +noall +answer; dig {clean_target} NS +noall +answer; dig {clean_target} TXT +noall +answer",
+        "Reverse DNS": f"dig -x {clean_target} +short || echo 'No PTR record found for {clean_target}'",
+        "TLS Certificate": f"echo | timeout 10 openssl s_client -connect {clean_target}:443 -servername {clean_target} 2>/dev/null | openssl x509 -noout -text 2>/dev/null || echo 'Could not retrieve TLS certificate from {clean_target}:443 — target may not have HTTPS'",
+        "HTTP Headers": f"curl -I -sS --max-time 10 https://{clean_target} 2>&1 || curl -I -sS --max-time 10 http://{clean_target} 2>&1",
+        "Nmap Basic": f"nmap -sV -Pn -p 1-1000 --max-rate 100 --open {clean_target}",
+        "Nmap Aggressive": f"nmap -sV -Pn -p 1-1000 --script default,vuln --max-rate 200 --open --host-timeout 300s {clean_target}",
+        "Nmap Vuln Scripts": f"nmap -sV -Pn --script vuln --open {clean_target}",
+        "DNS Zone Transfer": f"echo 'Attempting zone transfer from {clean_target}...' && dig @{clean_target} axfr +noall +answer 2>&1 || echo 'Zone transfer failed — server does not allow AXFR (this is expected for most servers)'",
+        "Sherlock": f"sherlock {clean_target} --timeout 10 2>/dev/null",
+        "Subfinder": f"subfinder -d {clean_target} -silent",
+        "theHarvester": f"theHarvester -d {clean_target} -b crtsh,bing,duckduckgo -l 200 2>&1",
+        "Holehe": f"holehe {clean_target}",
+        "WhatWeb": f"whatweb {clean_target} -a 3 --color=never",
+        "WAFW00F": f"wafw00f {clean_target}",
+        "Nikto": f"nikto -h {clean_target} -maxtime 180s",
+        "Gobuster Dir": f"gobuster dir -u https://{clean_target} -w /usr/share/wordlists/dirb/common.txt -q -t 50 2>&1",
+        "Gobuster DNS": f"gobuster dns --domain {clean_target} -w /usr/share/wordlists/dirb/common.txt -q -t 50 2>&1",
+        "FFUF": f"ffuf -u https://{clean_target}/FUZZ -w /usr/share/wordlists/dirb/common.txt -mc 200,301,302,403 -fs 0 -s 2>&1",
+        "HTTPx": f"echo {clean_target} | httpx -silent -title -tech-detect -status-code 2>&1",
+        "Masscan": f"target_ip=$(dig +short {clean_target} | head -1); if [ -z \"$target_ip\" ]; then echo 'Could not resolve {clean_target} to IP'; else masscan $target_ip -p1-10000 --rate=1000 --open; fi",
+        "Maigret": f"maigret {clean_target}",
+        "SSL Scan": f"echo | timeout 15 openssl s_client -connect {clean_target}:443 -servername {clean_target} 2>/dev/null | openssl x509 -noout -dates -subject -issuer 2>/dev/null; echo '---'; nmap --script ssl-enum-ciphers -p 443 {clean_target} 2>&1 || echo 'SSL scan completed'",
+        "Nuclei": f"nuclei -u {clean_target} -silent -severity low,medium,high,critical 2>&1 | head -100",
+        "CORS Test": f"curl -sS -I -H 'Origin: https://evil.com' https://{clean_target} 2>&1 | grep -i 'access-control-allow-origin' || echo 'No CORS header found'",
+        "Security Headers": f"curl -sS -I https://{clean_target} 2>&1 | grep -iE '(strict-transport|x-frame|x-content-type|x-xss|content-security|referrer-policy|permissions-policy)' || echo 'No security headers found'",
+        "Technology Stack": f"whatweb {clean_target} --color=never 2>&1; echo '---'; (command -v wappalyzer >/dev/null 2>&1 && wappalyzer {clean_target} 2>&1) || echo 'Wappalyzer not available (install via: npm i -g wappalyzer)'",
+        "Port Scan Full": f"nmap -sV -Pn -p- --min-rate 5000 --open {clean_target}",
+        "Subdomain Takeover": f"echo 'Checking {clean_target} for subdomain takeover...' && subfinder -d {clean_target} -silent | httpx -silent -status-code -title 2>&1 | grep -E '(404|CNAME|Not Found)' || echo 'No obvious takeover found'",
     }
 
     if tool not in commands:
@@ -615,9 +618,10 @@ def cancel_scan(scan_id):
     return jsonify({"status": "cancelled"})
 
 @app.route("/api/scan/history", methods=["GET"])
-@limiter.limit("500 per hour")
+@limiter.limit("100 per hour")
+@require_stats_auth
 def get_scan_history():
-    """Get scan history"""
+    """Get scan history (requires API key)"""
     limit = request.args.get("limit", 50, type=int)
     history = scan_manager.get_history(limit=limit)
     return jsonify({"history": history})

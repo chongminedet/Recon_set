@@ -244,6 +244,9 @@ function SettingsPanel({ settings, onUpdate, updateCursorTheme, currentTheme }) 
           <label className="settings-label">Compact Mode</label>
           <button
             className={`settings-toggle ${settings.compactMode ? 'on' : ''}`}
+            role="switch"
+            aria-checked={settings.compactMode}
+            aria-label="Compact Mode"
             onClick={() => onUpdate({ ...settings, compactMode: !settings.compactMode })}
           >
             <span className="settings-toggle-knob" />
@@ -268,6 +271,9 @@ function SettingsPanel({ settings, onUpdate, updateCursorTheme, currentTheme }) 
           <label className="settings-label">Auto-select All Tools</label>
           <button
             className={`settings-toggle ${settings.autoSelectAll ? 'on' : ''}`}
+            role="switch"
+            aria-checked={settings.autoSelectAll}
+            aria-label="Auto-select All Tools"
             onClick={() => onUpdate({ ...settings, autoSelectAll: !settings.autoSelectAll })}
           >
             <span className="settings-toggle-knob" />
@@ -277,6 +283,9 @@ function SettingsPanel({ settings, onUpdate, updateCursorTheme, currentTheme }) 
           <label className="settings-label">Show Tool Descriptions</label>
           <button
             className={`settings-toggle ${settings.showToolDesc ? 'on' : ''}`}
+            role="switch"
+            aria-checked={settings.showToolDesc}
+            aria-label="Show Tool Descriptions"
             onClick={() => onUpdate({ ...settings, showToolDesc: !settings.showToolDesc })}
           >
             <span className="settings-toggle-knob" />
@@ -336,6 +345,8 @@ export default function ReconApp() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [parallelMode, setParallelMode] = useState(false);
   const [toolCategories, setToolCategories] = useState({});
+  const [scanCompleteNotif, setScanCompleteNotif] = useState(false);
+  const [toolsLoading, setToolsLoading] = useState(false);
 
   const { currentTheme, updateCursorTheme } = useCursorTheme();
 
@@ -352,20 +363,28 @@ export default function ReconApp() {
   useEffect(() => {
     const cursor = document.getElementById('custom-cursor');
     if (!cursor) return;
+    let ticking = false;
     const move = (e) => {
-      cursor.style.left = e.clientX - 20 + 'px';
-      cursor.style.top = e.clientY - 20 + 'px';
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          cursor.style.left = e.clientX - 20 + 'px';
+          cursor.style.top = e.clientY - 20 + 'px';
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
     const over = () => { cursor.style.transform = 'scale(1.8)'; };
     const out = () => { cursor.style.transform = 'scale(1)'; };
     document.addEventListener('mousemove', move);
-    document.querySelectorAll('.tool-card, .nav-item, .execute-btn, .new-scan-btn, .activity-item').forEach(el => {
+    const elements = document.querySelectorAll('.tool-card, .nav-item, .execute-btn, .new-scan-btn, .activity-item');
+    elements.forEach(el => {
       el.addEventListener('mouseenter', over);
       el.addEventListener('mouseleave', out);
     });
     return () => {
       document.removeEventListener('mousemove', move);
-      document.querySelectorAll('.tool-card, .nav-item, .execute-btn, .new-scan-btn, .activity-item').forEach(el => {
+      elements.forEach(el => {
         el.removeEventListener('mouseenter', over);
         el.removeEventListener('mouseleave', out);
       });
@@ -374,11 +393,13 @@ export default function ReconApp() {
 
   useEffect(() => {
     const fetchTools = async () => {
+      setToolsLoading(true);
       try {
         const response = await fetch(`${API_BASE}/tools?type=${encodeURIComponent(targetType)}`);
         if (!response.ok) {
           setError('Failed to load tools from server');
           setAvailableTools([]);
+          setToolsLoading(false);
           return;
         }
         const data = await response.json();
@@ -392,6 +413,8 @@ export default function ReconApp() {
       } catch (err) {
         setError('Failed to connect to server');
         setAvailableTools([]);
+      } finally {
+        setToolsLoading(false);
       }
     };
     fetchTools();
@@ -402,29 +425,39 @@ export default function ReconApp() {
     const pollInterval = setInterval(async () => {
       try {
         const response = await fetch(`${API_BASE}/scan/${scanId}`);
+        if (!response.ok) {
+          console.error('Scan status fetch failed:', response.status);
+          return;
+        }
         const data = await response.json();
-        setScanStatus(data);
-        if (data.status === 'completed' || data.status === 'failed' || data.status === 'cancelled') {
-          setScanning(false);
-          setRecentActivity((prev) => [
-            {
-              id: scanId,
-              target: target,
-              status: data.status,
-              tools: [...selectedTools],
-              time: new Date().toLocaleTimeString(),
-              progress: data.progress,
-              timestamp: Date.now(),
-            },
-            ...prev.slice(0, 19),
-          ]);
+        if (data && data.status) {
+          setScanStatus(data);
+          if (data.status === 'completed' || data.status === 'failed' || data.status === 'cancelled') {
+            setScanning(false);
+            if (data.status === 'completed') {
+              setScanCompleteNotif(true);
+              setTimeout(() => setScanCompleteNotif(false), 5000);
+            }
+            setRecentActivity((prev) => [
+              {
+                id: scanId,
+                target: target,
+                status: data.status,
+                tools: [...selectedTools],
+                time: new Date().toLocaleTimeString(),
+                progress: data.progress,
+                timestamp: Date.now(),
+              },
+              ...prev.slice(0, 19),
+            ]);
+          }
         }
       } catch (err) {
         console.error('Failed to fetch scan status:', err);
       }
     }, 3000);
     return () => clearInterval(pollInterval);
-  }, [scanId, scanning, target, selectedTools]);
+  }, [scanId, scanning, target]);
 
   const filteredActivity = useMemo(() => {
     if (!searchQuery.trim()) return recentActivity;
@@ -484,12 +517,17 @@ export default function ReconApp() {
     if (!scanId) return;
     try {
       const response = await fetch(`${API_BASE}/scan/${scanId}/export?format=${format}`);
+      if (!response.ok) {
+        setError('Export failed: ' + (response.statusText || 'Server error'));
+        return;
+      }
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `recon_${target}_${scanId}.${format === 'json' ? 'json' : 'md'}`;
       a.click();
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
     } catch (err) {
       setError('Failed to export results');
     }
@@ -515,10 +553,21 @@ export default function ReconApp() {
     setParallelMode(false);
   };
 
-  const getFilteredTools = () => {
+  const handleCancelScan = async () => {
+    if (scanId) {
+      try {
+        await fetch(`${API_BASE}/scan/${scanId}/cancel`, { method: 'POST' });
+      } catch (e) { /* ignore */ }
+    }
+    setScanning(false);
+    setScanStatus(null);
+    setScanId(null);
+  };
+
+  const filteredTools = useMemo(() => {
     if (activeCategory === 'All') return availableTools;
     return availableTools.filter(tool => toolCategories[activeCategory]?.includes(tool));
-  };
+  }, [availableTools, activeCategory, toolCategories]);
 
   const renderDashboard = () => (
     <>
@@ -549,11 +598,22 @@ export default function ReconApp() {
             className="scan-input"
             disabled={scanning}
           />
-          <button className="execute-btn" onClick={handleStartScan} disabled={scanning}>
-            {scanning ? 'SCANNING...' : '▶ EXECUTE SCAN'}
-          </button>
+          {scanning ? (
+            <button className="execute-btn cancel-btn" onClick={handleCancelScan}>
+              ✕ CANCEL
+            </button>
+          ) : (
+            <button className="execute-btn" onClick={handleStartScan}>
+              ▶ EXECUTE SCAN
+            </button>
+          )}
         </div>
-        {error && <div className="error-msg">{error}</div>}
+        {error && <div className="error-msg" role="alert">{error}</div>}
+        {scanCompleteNotif && (
+          <div className="scan-notif success" role="status">
+            ✓ Scan completed successfully! Scroll down for results.
+          </div>
+        )}
 
         <div className="scan-options-row">
           <label className="scan-option">
@@ -640,7 +700,12 @@ export default function ReconApp() {
         )}
 
         <div className={`tools-grid ${settings.compactMode ? 'compact' : ''}`}>
-          {getFilteredTools().map((tool) => (
+          {toolsLoading ? (
+            <div className="tools-loading">
+              <div className="spinner" />
+              <span>Loading tools...</span>
+            </div>
+          ) : filteredTools.map((tool) => (
             <div
               key={tool}
               className={`tool-card ${selectedTools.includes(tool) ? 'selected' : ''} ${selectedProfile ? 'has-profile' : ''}`}
@@ -720,6 +785,13 @@ export default function ReconApp() {
               </button>
               <button onClick={() => handleExport(settings.exportFormat === 'json' ? 'markdown' : 'json')} className="btn btn-secondary">
                 Download {settings.exportFormat === 'json' ? 'Markdown' : 'JSON'}
+              </button>
+            </div>
+          )}
+          {scanStatus.status === 'failed' && (
+            <div className="export-section">
+              <button onClick={handleStartScan} className="btn btn-secondary retry-btn">
+                ↻ Retry Scan
               </button>
             </div>
           )}
@@ -838,7 +910,7 @@ export default function ReconApp() {
           </div>
           <div className="topbar-right">
             <div className={`search-bar ${searchExpanded ? 'expanded' : ''}`}>
-              <span className="search-icon" onClick={() => {
+              <span className="search-icon" role="button" tabIndex={0} aria-label="Toggle search" onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); } }} onClick={() => {
                 if (!searchExpanded) {
                   setSearchExpanded(true);
                   setTimeout(() => document.querySelector('.search-bar input')?.focus(), 300);
