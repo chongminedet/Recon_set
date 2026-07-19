@@ -14,154 +14,276 @@ const DEFAULT_SETTINGS = {
 };
 
 const TOOL_ICONS = {
-  'WHOIS': '⊕', 'DNS': '⊞', 'DNS (Full)': '⊠', 'Reverse DNS': '⇄',
-  'TLS Certificate': '⊙', 'HTTP Headers': '⊘', 'Nmap Basic': '⊛',
-  'Nmap Aggressive': '⚠', 'Nmap Vuln Scripts': '⚠', 'DNS Zone Transfer': '⊕',
-  'Sherlock': '⊕', 'Subfinder': '◎', 'theHarvester': '⚡', 'WhatWeb': '◈',
-  'WAFW00F': '◆', 'Nikto': '◇', 'Gobuster Dir': '▣', 'Gobuster DNS': '▤',
-  'FFUF': '▥', 'HTTPx': '▦', 'Masscan': '▧', 'Maigret': '⊕', 'Holehe': '⊙',
-  'SSL Scan': '🔒', 'Nuclei': '🎯', 'CORS Test': '🌐', 'Security Headers': '🛡',
-  'Technology Stack': '⚙', 'Port Scan Full': '📡', 'Subdomain Takeover': '🔓',
+  'WHOIS': 'globe', 'DNS': 'server', 'DNS (Full)': 'network', 'Reverse DNS': 'rotate-ccw',
+  'TLS Certificate': 'shield-check', 'HTTP Headers': 'eye', 'Nmap Basic': 'scan',
+  'Nmap Aggressive': 'crosshair', 'Nmap Vuln Scripts': 'shield-alert', 'DNS Zone Transfer': 'file-search',
+  'Sherlock': 'user-search', 'Subfinder': 'radar', 'theHarvester': 'mail-search', 'WhatWeb': 'code',
+  'WAFW00F': 'shield', 'Nikto': 'bug', 'Gobuster Dir': 'folder-search', 'Gobuster DNS': 'radar',
+  'FFUF': 'zap', 'HTTPx': 'terminal', 'Masscan': 'zap', 'Maigret': 'file-search', 'Holehe': 'mail-search',
+  'SSL Scan': 'lock', 'Nuclei': 'crosshair', 'CORS Test': 'globe', 'Security Headers': 'shield-check',
+  'Technology Stack': 'code', 'Port Scan Full': 'radar', 'Subdomain Takeover': 'shield-alert',
 };
 
 const SCAN_PROFILES = {
-  quick: { name: 'Quick Scan', icon: '⚡', color: '#00ff88', description: '~2 min', tools: ['WHOIS', 'DNS', 'HTTP Headers', 'Nmap Basic', 'WhatWeb'] },
-  standard: { name: 'Standard Scan', icon: '🔍', color: '#00d4ff', description: '~5 min', tools: ['WHOIS', 'DNS', 'DNS (Full)', 'TLS Certificate', 'HTTP Headers', 'Nmap Basic', 'WhatWeb', 'WAFW00F', 'Subfinder', 'HTTPx'] },
-  deep: { name: 'Deep Scan', icon: '🔬', color: '#ff6b6b', description: '~15 min', tools: ['WHOIS', 'DNS', 'DNS (Full)', 'Reverse DNS', 'TLS Certificate', 'HTTP Headers', 'Nmap Basic', 'Nmap Aggressive', 'DNS Zone Transfer', 'Subfinder', 'WhatWeb', 'WAFW00F', 'Nikto', 'Gobuster Dir', 'Gobuster DNS', 'FFUF', 'HTTPx', 'Masscan'] },
-  vuln: { name: 'Vulnerability', icon: '🛡', color: '#ffd93d', description: '~10 min', tools: ['Nmap Aggressive', 'Nikto', 'WhatWeb', 'WAFW00F', 'SSL Scan', 'Nmap Vuln Scripts'] },
-  osint: { name: 'OSINT', icon: '🕵', color: '#c084fc', description: '~5 min', tools: ['WHOIS', 'DNS', 'Subfinder', 'theHarvester', 'Sherlock', 'Maigret', 'Holehe'] },
-  web: { name: 'Web App', icon: '🌐', color: '#22d3ee', description: '~8 min', tools: ['HTTP Headers', 'TLS Certificate', 'WhatWeb', 'WAFW00F', 'Nikto', 'Gobuster Dir', 'FFUF', 'HTTPx'] },
+  quick: { name: 'Quick Scan', icon: 'zap', color: '#00ff88', description: '~2 min', tools: ['WHOIS', 'DNS', 'HTTP Headers', 'Nmap Basic', 'WhatWeb'] },
+  standard: { name: 'Standard Scan', icon: 'search', color: '#00d4ff', description: '~5 min', tools: ['WHOIS', 'DNS', 'DNS (Full)', 'TLS Certificate', 'HTTP Headers', 'Nmap Basic', 'WhatWeb', 'WAFW00F', 'Subfinder', 'HTTPx'] },
+  deep: { name: 'Deep Scan', icon: 'radar', color: '#ff6b6b', description: '~15 min', tools: ['WHOIS', 'DNS', 'DNS (Full)', 'Reverse DNS', 'TLS Certificate', 'HTTP Headers', 'Nmap Basic', 'Nmap Aggressive', 'DNS Zone Transfer', 'Subfinder', 'WhatWeb', 'WAFW00F', 'Nikto', 'Gobuster Dir', 'Gobuster DNS', 'FFUF', 'HTTPx', 'Masscan'] },
+  vuln: { name: 'Vulnerability', icon: 'shield-alert', color: '#ffd93d', description: '~10 min', tools: ['Nmap Aggressive', 'Nikto', 'WhatWeb', 'WAFW00F', 'SSL Scan', 'Nmap Vuln Scripts'] },
+  osint: { name: 'OSINT', icon: 'user-search', color: '#c084fc', description: '~5 min', tools: ['WHOIS', 'DNS', 'Subfinder', 'theHarvester', 'Sherlock', 'Maigret', 'Holehe'] },
+  web: { name: 'Web App', icon: 'globe', color: '#22d3ee', description: '~8 min', tools: ['HTTP Headers', 'TLS Certificate', 'WhatWeb', 'WAFW00F', 'Nikto', 'Gobuster Dir', 'FFUF', 'HTTPx'] },
 };
 
-// SVG Icon Components
+// SVG Icon Components (Lucide Icons - ISC License)
 const Icon = ({ name, size = 18, className = '' }) => {
   const icons = {
     dashboard: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <rect x="3" y="3" width="7" height="7" rx="1"/>
-        <rect x="14" y="3" width="7" height="7" rx="1"/>
-        <rect x="3" y="14" width="7" height="7" rx="1"/>
-        <rect x="14" y="14" width="7" height="7" rx="1"/>
+        <rect width="7" height="9" x="3" y="3" rx="1"/>
+        <rect width="7" height="5" x="14" y="3" rx="1"/>
+        <rect width="7" height="9" x="14" y="12" rx="1"/>
+        <rect width="7" height="5" x="3" y="16" rx="1"/>
       </svg>
     ),
     radar: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <circle cx="12" cy="12" r="10"/>
-        <circle cx="12" cy="12" r="6"/>
+        <path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/>
+        <path d="M4 6h.01"/>
+        <path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/>
+        <path d="M16.24 7.76A6 6 0 1 0 8.23 16.67"/>
+        <path d="M12 18h.01"/>
+        <path d="M17.99 11.66A6 6 0 0 1 15.77 16.67"/>
         <circle cx="12" cy="12" r="2"/>
-        <line x1="12" y1="2" x2="12" y2="6"/>
+        <path d="m13.41 10.59 5.66-5.66"/>
       </svg>
     ),
     history: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <circle cx="12" cy="12" r="10"/>
-        <polyline points="12 6 12 12 16 14"/>
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
+        <path d="M12 7v5l4 2"/>
       </svg>
     ),
     settings: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/>
         <circle cx="12" cy="12" r="3"/>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
       </svg>
     ),
     search: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="m21 21-4.34-4.34"/>
         <circle cx="11" cy="11" r="8"/>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
     ),
     plus: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <line x1="12" y1="5" x2="12" y2="19"/>
-        <line x1="5" y1="12" x2="19" y2="12"/>
+        <path d="M5 12h14"/>
+        <path d="M12 5v14"/>
       </svg>
     ),
     check: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <polyline points="20 6 9 17 4 12"/>
+        <path d="M20 6 9 17l-5-5"/>
       </svg>
     ),
     x: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <line x1="18" y1="6" x2="6" y2="18"/>
-        <line x1="6" y1="6" x2="18" y2="18"/>
+        <path d="M18 6 6 18"/>
+        <path d="m6 6 12 12"/>
       </svg>
     ),
     warning: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-        <line x1="12" y1="9" x2="12" y2="13"/>
-        <line x1="12" y1="17" x2="12.01" y2="17"/>
+        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/>
+        <path d="M12 9v4"/>
+        <path d="M12 17h.01"/>
       </svg>
     ),
     chevron: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <polyline points="9 18 15 12 9 6"/>
+        <path d="m9 18 6-6-6-6"/>
       </svg>
     ),
     download: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M12 15V3"/>
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="7 10 12 15 17 10"/>
-        <line x1="12" y1="15" x2="12" y2="3"/>
+        <path d="m7 10 5 5 5-5"/>
       </svg>
     ),
     scan: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
-        <circle cx="12" cy="12" r="3"/>
+        <path d="M3 7V5a2 2 0 0 1 2-2h2"/>
+        <path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+        <path d="M21 17v2a2 2 0 0 1-2 2h-2"/>
+        <path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
       </svg>
     ),
     ghost: (
-      <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-        <path d="M24 4C14.06 4 6 12.06 6 22v6c0 4.42-2.24 8.26-5.64 10.54.18 1.36.68 2.62 1.46 3.7C3.68 44.36 5.78 46 8.5 46c1.84 0 3.5-.74 4.7-1.94C15 45.06 19.32 46 24 46s9-.94 10.8-1.94C36 45.26 37.66 46 39.5 46c2.72 0 4.82-1.64 6.68-3.76.78-1.08 1.28-2.34 1.46-3.7C44.24 36.26 42 32.42 42 28v-6C42 12.06 33.94 4 24 4z" stroke="currentColor" strokeWidth="2" fill="none"/>
-        <circle cx="17" cy="20" r="4" stroke="currentColor" strokeWidth="2" fill="none"/>
-        <circle cx="31" cy="20" r="4" stroke="currentColor" strokeWidth="2" fill="none"/>
-        <path d="M20 30v4M24 30v4M28 30v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-        <path d="M16 33h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M9 10h.01"/>
+        <path d="M15 10h.01"/>
+        <path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"/>
       </svg>
     ),
     port: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
-        <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
-        <line x1="6" y1="6" x2="6.01" y2="6"/>
-        <line x1="6" y1="18" x2="6.01" y2="18"/>
+        <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/>
+        <rect width="20" height="8" x="2" y="14" rx="2" ry="2"/>
+        <line x1="6" x2="6.01" y1="6" y2="6"/>
+        <line x1="6" x2="6.01" y1="18" y2="18"/>
       </svg>
     ),
     globe: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <circle cx="12" cy="12" r="10"/>
-        <line x1="2" y1="12" x2="22" y2="12"/>
-        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+        <path d="M2 12h20"/>
       </svg>
     ),
     shield: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+      </svg>
+    ),
+    'shield-check': (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+        <path d="m9 12 2 2 4-4"/>
+      </svg>
+    ),
+    'shield-alert': (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+        <path d="M12 8v4"/>
+        <path d="M12 16h.01"/>
       </svg>
     ),
     user: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
         <circle cx="12" cy="7" r="4"/>
+      </svg>
+    ),
+    'user-search': (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="10" cy="7" r="4"/>
+        <path d="M10.3 15H7a4 4 0 0 0-4 4v2"/>
+        <circle cx="17" cy="17" r="3"/>
+        <path d="m21 21-1.9-1.9"/>
       </svg>
     ),
     mail: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-        <polyline points="22,6 12,13 2,6"/>
+        <path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/>
+        <rect x="2" y="4" width="20" height="16" rx="2"/>
+      </svg>
+    ),
+    'mail-search': (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M22 12.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h7.5"/>
+        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+        <path d="M18 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+        <circle cx="18" cy="18" r="3"/>
+        <path d="m22 22-1.5-1.5"/>
       </svg>
     ),
     zap: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>
       </svg>
     ),
     lock: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+    ),
+    bug: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M12 20v-9"/>
+        <path d="M14 7a4 4 0 0 1 4 4v3a6 6 0 0 1-12 0v-3a4 4 0 0 1 4-4z"/>
+        <path d="M14.12 3.88 16 2"/>
+        <path d="M21 21a4 4 0 0 0-3.81-4"/>
+        <path d="M21 5a4 4 0 0 1-3.55 3.97"/>
+        <path d="M22 13h-4"/>
+        <path d="M3 21a4 4 0 0 1 3.81-4"/>
+        <path d="M3 5a4 4 0 0 0 3.55 3.97"/>
+        <path d="M6 13H2"/>
+        <path d="m8 2 1.88 1.88"/>
+        <path d="M9 7.13V6a3 3 0 1 1 6 0v1.13"/>
+      </svg>
+    ),
+    crosshair: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="22" x2="18" y1="12" y2="12"/>
+        <line x1="6" x2="2" y1="12" y2="12"/>
+        <line x1="12" x2="12" y1="6" y2="2"/>
+        <line x1="12" x2="12" y1="22" y2="18"/>
+      </svg>
+    ),
+    target: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="12" cy="12" r="10"/>
+        <circle cx="12" cy="12" r="6"/>
+        <circle cx="12" cy="12" r="2"/>
+      </svg>
+    ),
+    eye: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+    ),
+    code: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="m16 18 6-6-6-6"/>
+        <path d="m8 6-6 6 6 6"/>
+      </svg>
+    ),
+    terminal: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M12 19h8"/>
+        <path d="m4 17 6-6-6-6"/>
+      </svg>
+    ),
+    'folder-search': (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M10.7 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v4.1"/>
+        <path d="m21 21-1.9-1.9"/>
+        <circle cx="17" cy="17" r="3"/>
+      </svg>
+    ),
+    'file-search': (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/>
+        <path d="M14 2v5a1 1 0 0 0 1 1h5"/>
+        <circle cx="11.5" cy="14.5" r="2.5"/>
+        <path d="M13.3 16.3 15 18"/>
+      </svg>
+    ),
+    network: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect x="16" y="16" width="6" height="6" rx="1"/>
+        <rect x="2" y="16" width="6" height="6" rx="1"/>
+        <rect x="9" y="2" width="6" height="6" rx="1"/>
+        <path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/>
+        <path d="M12 12V8"/>
+      </svg>
+    ),
+    server: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/>
+        <rect width="20" height="8" x="2" y="14" rx="2" ry="2"/>
+        <line x1="6" x2="6.01" y1="6" y2="6"/>
+        <line x1="6" x2="6.01" y1="18" y2="18"/>
+      </svg>
+    ),
+    'rotate-ccw': (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
       </svg>
     ),
   };
@@ -657,7 +779,7 @@ export default function ReconApp() {
                 disabled={scanning}
                 style={{ '--profile-color': profile.color }}
               >
-                <span className="profile-icon">{profile.icon}</span>
+                <span className="profile-icon"><Icon name={profile.icon} size={20} /></span>
                 <span className="profile-name">{profile.name}</span>
                 <span className="profile-desc">{profile.description}</span>
               </button>
@@ -726,7 +848,7 @@ export default function ReconApp() {
               aria-pressed={selectedTools.includes(tool)}
             >
               <div className="tool-card-header">
-                <span className="tool-icon">{TOOL_ICONS[tool] || '⊕'}</span>
+                <span className="tool-icon"><Icon name={TOOL_ICONS[tool] || 'globe'} size={16} /></span>
                 <span className={`tool-tag ${TOOL_TAGS[tool]?.toLowerCase()}`}>{TOOL_TAGS[tool]}</span>
                 <span className={`status-dot ${selectedTools.includes(tool) ? 'active' : ''}`} />
               </div>

@@ -153,8 +153,8 @@
   --scanline-opacity: 0.04;
 }
 
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; cursor: var(--cursor-default); }
-html, body, #root { height: 100%; cursor: var(--cursor-default); }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
+html, body, #root { height: 100%; cursor: none !important; }
 body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-body); font-size: 13px; line-height: 1.5; overflow: hidden; -webkit-tap-highlight-color: transparent; transition: background 0.3s, color 0.3s; }
 .custom-cursor {
   width: 40px;
@@ -345,12 +345,12 @@ body { background: var(--bg-primary); color: var(--text-primary); font-family: v
 .scan-input { flex: 1; padding: 11px 14px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius); color: var(--text-primary); font-size: 13px; font-family: var(--font-body); outline: none; transition: border-color var(--transition); min-width: 0; min-height: 40px; }
 .scan-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
 .scan-input::placeholder { color: var(--text-muted); }
-.scan-input:disabled { opacity: 0.5; cursor: not-allowed; }
+.scan-input:disabled { opacity: 0.5; cursor: none !important; }
 select.scan-input { appearance: auto; cursor: var(--cursor-pointer); }
 .scan-type-select { flex: 0 0 160px; min-width: 140px; }
 .execute-btn { padding: 11px 20px; background: var(--accent); color: #000; border: none; border-radius: var(--radius); font-size: 13px; font-weight: 700; font-family: var(--font-body); cursor: var(--cursor-pointer); transition: all var(--transition); white-space: nowrap; letter-spacing: 0.5px; }
 .execute-btn:hover:not(:disabled) { box-shadow: 0 0 25px var(--accent-glow); transform: translateY(-1px); }
-.execute-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.execute-btn:disabled { opacity: 0.6; cursor: none !important; }
 .error-msg { margin-top: 10px; padding: 10px 14px; background: rgba(255, 71, 87, 0.1); border-left: 3px solid var(--red); color: var(--red); border-radius: var(--radius); font-size: 12px; word-break: break-word; }
 
 .module-config { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 16px; }
