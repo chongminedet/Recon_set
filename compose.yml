@@ -47,8 +47,8 @@ services:
   nginx:
     image: nginx:alpine
     container_name: reconraas_nginx
-    expose:
-      - "80"
+    ports:
+      - "80:80"
 
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
